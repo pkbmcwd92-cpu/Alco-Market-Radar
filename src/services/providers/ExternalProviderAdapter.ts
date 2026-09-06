@@ -85,13 +85,21 @@ export class ExternalProviderAdapter implements MarketDataProvider {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         return {
+          providerId: this.id,
           verified: false,
-          status: 'UNAVAILABLE',
+          status: 'FAILED_VERIFICATION',
+          checkedAt: new Date().toISOString(),
           latencyMs: 0,
-          actorId: 'curious_coder~facebook-ads-library-scraper',
+          reachable: false,
+          authenticated: false,
+          rawItemsReceived: 0,
+          normalizedItems: 0,
+          validItems: 0,
+          rejectedItems: 0,
           tokenConfigured: false,
           message: errorData.message || `Pemeriksaan verifikasi provider gagal (HTTP ${response.status}).`,
-          sampleItemCount: 0,
+          warnings: [],
+          errors: [errorData.code || `HTTP_${response.status}`],
         };
       }
 
@@ -99,13 +107,21 @@ export class ExternalProviderAdapter implements MarketDataProvider {
       return diagnostic;
     } catch (err: any) {
       return {
+        providerId: this.id,
         verified: false,
-        status: 'UNAVAILABLE',
+        status: 'FAILED_VERIFICATION',
+        checkedAt: new Date().toISOString(),
         latencyMs: 0,
-        actorId: 'curious_coder~facebook-ads-library-scraper',
+        reachable: false,
+        authenticated: false,
+        rawItemsReceived: 0,
+        normalizedItems: 0,
+        validItems: 0,
+        rejectedItems: 0,
         tokenConfigured: false,
         message: `Gagal memverifikasi koneksi provider: ${err?.message || 'Koneksi jaringan terputus'}.`,
-        sampleItemCount: 0,
+        warnings: [],
+        errors: ['NETWORK_ERROR'],
       };
     }
   }

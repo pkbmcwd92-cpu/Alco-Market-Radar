@@ -20,6 +20,17 @@ export function validateObservation(ad: AdObservation, index?: number): Validati
     });
   }
 
+  // 1b. External Ad ID
+  if (!ad.externalAdId || typeof ad.externalAdId !== 'string' || ad.externalAdId.trim().length === 0) {
+    errors.push({
+      index,
+      externalId: ad.externalAdId,
+      field: 'externalAdId',
+      code: 'INVALID_AD_ID',
+      message: 'External Ad ID wajib ada dan tidak boleh kosong.',
+    });
+  }
+
   // 2. Advertiser Name
   if (!ad.advertiserName || typeof ad.advertiserName !== 'string' || ad.advertiserName.trim().length === 0) {
     errors.push({

@@ -115,8 +115,10 @@ export const OBSERVATION_SOURCE_LABELS: Record<ObservationSource, string> = {
 
 export const PROVIDER_HEALTH_LABELS: Record<string, { label: string; color: string }> = {
   READY: { label: 'Siap', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  NOT_CONFIGURED: { label: 'Belum Dikonfigurasi', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-  DEGRADED: { label: 'Terbatas', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+  VERIFIED: { label: 'Terverifikasi', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  UNVERIFIED: { label: 'Belum Terverifikasi', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  NOT_CONFIGURED: { label: 'Belum Dikonfigurasi', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+  DEGRADED: { label: 'Terbatas (Degradasi)', color: 'bg-orange-50 text-orange-700 border-orange-200' },
   UNAVAILABLE: { label: 'Tidak Tersedia', color: 'bg-rose-50 text-rose-700 border-rose-200' },
 };
 

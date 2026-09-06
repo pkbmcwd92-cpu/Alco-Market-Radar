@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx src/services/ingestion/__tests__/ingestion.test.ts"
+    "test": "tsx src/services/ingestion/__tests__/ingestion.test.ts && tsx src/services/providers/__tests__/verificationIntegrity.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

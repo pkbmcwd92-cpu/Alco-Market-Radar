@@ -42,7 +42,7 @@ app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
     product: "ALCO MARKET RADAR",
-    version: "1.2.1-provider-verified-hardening",
+    version: "1.2.1a-verification-integrity",
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
     model: GEMINI_MODEL,
     hasExternalProviderToken: Boolean(providerCfg.apiToken),
@@ -53,16 +53,20 @@ app.get("/api/health", (_req, res) => {
 app.get("/api/providers/health", (_req, res) => {
   const providerCfg = getProviderConfig();
   const hasToken = Boolean(providerCfg.apiToken);
+  const isActorConfigured = Boolean(process.env.EXTERNAL_PROVIDER_ACTOR_ID);
 
   res.json({
     demoProviderStatus: "READY",
     manualImportStatus: "READY",
-    externalProviderStatus: hasToken ? "READY" : "NOT_CONFIGURED",
+    externalProviderStatus: hasToken ? "UNVERIFIED" : "NOT_CONFIGURED",
+    configured: hasToken,
     isConfigured: hasToken,
+    verificationStatus: hasToken ? "UNVERIFIED" : "NOT_CONFIGURED",
     actorId: providerCfg.actorId,
+    isActorConfigured,
     activeProviderMode: process.env.MARKET_DATA_PROVIDER || (hasToken ? "external" : "demo"),
     message: hasToken
-      ? "Provider eksternal terhubung dan siap mengambil data observasi publik."
+      ? "Token provider eksternal terkonfigurasi. Jalankan Uji Verifikasi untuk mengonfirmasi jalur data."
       : "Provider eksternal belum dikonfigurasi. Mode Demo dan Import Manual tetap siap digunakan.",
     capabilities: {
       searchByAdvertiser: true,
@@ -83,13 +87,23 @@ app.post("/api/providers/external/verify", async (req, res) => {
     res.json(diagnostic);
   } catch (err: any) {
     res.status(500).json({
+      providerId: "external_market_provider",
       verified: false,
-      status: "UNAVAILABLE",
+      status: "FAILED_VERIFICATION",
+      checkedAt: new Date().toISOString(),
       latencyMs: 0,
+      reachable: false,
+      authenticated: false,
+      rawItemsReceived: 0,
+      normalizedItems: 0,
+      validItems: 0,
+      rejectedItems: 0,
       actorId: getProviderConfig().actorId,
-      tokenConfigured: false,
+      isActorConfigured: Boolean(process.env.EXTERNAL_PROVIDER_ACTOR_ID),
+      tokenConfigured: Boolean(getProviderConfig().apiToken),
       message: err?.message || "Terjadi kesalahan internal saat memeriksa status provider.",
-      sampleItemCount: 0,
+      warnings: [],
+      errors: [err?.code || "INTERNAL_ERROR"],
     });
   }
 });

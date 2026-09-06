@@ -18,17 +18,17 @@ export function normalizeRawAd(
   const nowIso = new Date().toISOString();
 
   // 1. External identity & IDs
-  const externalAdId = String(
-    rawAd.externalId || 
+  const rawId = rawAd.externalId || 
     payload.externalAdId || 
     payload.adArchiveID || 
     payload.id || 
     payload.adId || 
-    `ext_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
-  );
+    '';
+  const externalAdId = rawId ? String(rawId) : '';
 
-  const competitorId = competitorIdOverride || payload.competitorId || `comp_${slugify(rawAd.advertiserName || rawAd.page_name || payload.page_name || 'unknown')}`;
-  const advertiserName = sanitizeText(rawAd.advertiserName || rawAd.page_name || payload.advertiserName || payload.pageName || payload.page_name || 'Competitor');
+  const rawAdv = rawAd.advertiserName || rawAd.page_name || payload.advertiserName || payload.pageName || payload.page_name || '';
+  const advertiserName = sanitizeText(rawAdv);
+  const competitorId = competitorIdOverride || payload.competitorId || (advertiserName ? `comp_${slugify(advertiserName)}` : 'comp_unknown');
   const pageName = sanitizeText(payload.pageName || payload.page_name || rawAd.page_name || advertiserName);
 
   // 2. Dates

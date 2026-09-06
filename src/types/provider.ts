@@ -69,19 +69,49 @@ export interface ProviderSearchResult {
   warning?: string;
 }
 
+export type VerificationStatus =
+  | 'VERIFIED'
+  | 'UNVERIFIED'
+  | 'NOT_CONFIGURED'
+  | 'DEGRADED'
+  | 'FAILED_VERIFICATION';
+
+export type ProviderErrorCode =
+  | 'NOT_CONFIGURED'
+  | 'INVALID_CREDENTIALS'
+  | 'PROVIDER_TIMEOUT'
+  | 'RATE_LIMITED'
+  | 'QUOTA_EXCEEDED'
+  | 'PROVIDER_UNAVAILABLE'
+  | 'PROVIDER_SCHEMA_CHANGED'
+  | 'VALIDATION_FAILED'
+  | 'NETWORK_ERROR'
+  | 'UNKNOWN';
+
 export interface ProviderVerificationResult {
+  providerId: string;
   verified: boolean;
-  status: ProviderHealthStatus;
+  status: VerificationStatus;
+  checkedAt: string;
   latencyMs: number;
-  actorId: string;
-  tokenConfigured: boolean;
-  message: string;
-  sampleItemCount: number;
-  sampleItemPreview?: {
-    id?: string;
-    pageName?: string;
+  reachable: boolean;
+  authenticated: boolean;
+  rawItemsReceived: number;
+  normalizedItems: number;
+  validItems: number;
+  rejectedItems: number;
+  actorId?: string;
+  isActorConfigured?: boolean;
+  tokenConfigured?: boolean;
+  message?: string;
+  warnings: string[];
+  errors: string[];
+  sample?: {
+    externalAdId?: string;
+    advertiserName?: string;
     headline?: string;
-    fetchedAt?: string;
+    format?: string;
+    observedAt?: string;
   };
   details?: Record<string, unknown>;
 }
@@ -102,7 +132,7 @@ export interface IngestionError {
   field?: string;
   message: string;
   rawItem?: unknown;
-  code: 'INVALID_WORKSPACE' | 'INVALID_ADVERTISER' | 'INVALID_DATE' | 'INVALID_FORMAT' | 'MALFORMED_ROW' | 'NETWORK_ERROR' | 'UNAUTHORIZED' | 'UNKNOWN';
+  code: 'INVALID_WORKSPACE' | 'INVALID_ADVERTISER' | 'INVALID_AD_ID' | 'INVALID_DATE' | 'INVALID_FORMAT' | 'MALFORMED_ROW' | 'NETWORK_ERROR' | 'UNAUTHORIZED' | 'UNKNOWN';
 }
 
 export interface IngestionResult {
