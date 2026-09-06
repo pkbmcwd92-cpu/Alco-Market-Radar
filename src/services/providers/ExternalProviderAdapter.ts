@@ -5,6 +5,7 @@ import {
   ProviderHealthStatus,
   ProviderRawAd,
   ProviderSearchResult,
+  ProviderVerificationResult,
 } from '../../types/provider';
 
 /**
@@ -71,6 +72,41 @@ export class ExternalProviderAdapter implements MarketDataProvider {
     } catch (err: any) {
       // Re-throw with clear message
       throw new Error(err?.message || 'Koneksi ke provider eksternal terputus.');
+    }
+  }
+
+  async verifyConnection(): Promise<ProviderVerificationResult> {
+    try {
+      const response = await fetch('/api/providers/external/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          verified: false,
+          status: 'UNAVAILABLE',
+          latencyMs: 0,
+          actorId: 'curious_coder~facebook-ads-library-scraper',
+          tokenConfigured: false,
+          message: errorData.message || `Pemeriksaan verifikasi provider gagal (HTTP ${response.status}).`,
+          sampleItemCount: 0,
+        };
+      }
+
+      const diagnostic: ProviderVerificationResult = await response.json();
+      return diagnostic;
+    } catch (err: any) {
+      return {
+        verified: false,
+        status: 'UNAVAILABLE',
+        latencyMs: 0,
+        actorId: 'curious_coder~facebook-ads-library-scraper',
+        tokenConfigured: false,
+        message: `Gagal memverifikasi koneksi provider: ${err?.message || 'Koneksi jaringan terputus'}.`,
+        sampleItemCount: 0,
+      };
     }
   }
 

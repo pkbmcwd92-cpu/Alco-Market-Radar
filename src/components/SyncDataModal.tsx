@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Competitor, MarketWorkspace, AdObservation, MarketSignal } from '../types/radar';
 import { providerRegistry } from '../services/providers/ProviderRegistry';
 import { runIngestionPipeline } from '../services/ingestion/ingestionOrchestrator';
-import { IngestionResult, MarketDataProvider } from '../types/provider';
+import { IngestionResult, MarketDataProvider, ProviderVerificationResult } from '../types/provider';
 import { PROVIDER_HEALTH_LABELS, formatDateIndonesian } from '../utils/labels';
+import { ProviderVerificationModal } from './ProviderVerificationModal';
 import {
   RefreshCw,
   X,
@@ -42,27 +43,44 @@ export const SyncDataModal: React.FC<SyncDataModalProps> = ({
   const [syncStep, setSyncStep] = useState<string>('');
   const [ingestionResult, setIngestionResult] = useState<IngestionResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
+  const [verificationResult, setVerificationResult] = useState<ProviderVerificationResult | null>(null);
 
-  useEffect(() => {
+  const checkAllProviders = async () => {
     const list = providerRegistry.list();
     setProviders(list);
 
-    // Check health of all providers
-    const checkAll = async () => {
-      const statuses: Record<string, { status: string; message: string }> = {};
-      for (const p of list) {
-        try {
-          const h = await p.healthCheck();
-          statuses[p.id] = { status: h.status, message: h.message };
-        } catch {
-          statuses[p.id] = { status: 'UNAVAILABLE', message: 'Gagal terhubung ke provider' };
-        }
+    const statuses: Record<string, { status: string; message: string }> = {};
+    for (const p of list) {
+      try {
+        const h = await p.healthCheck();
+        statuses[p.id] = { status: h.status, message: h.message };
+      } catch {
+        statuses[p.id] = { status: 'UNAVAILABLE', message: 'Gagal terhubung ke provider' };
       }
-      setProviderStatuses(statuses);
-    };
+    }
+    setProviderStatuses(statuses);
+  };
 
-    checkAll();
+  useEffect(() => {
+    checkAllProviders();
   }, []);
+
+  const handleRunVerification = async (): Promise<ProviderVerificationResult> => {
+    const extProvider = providerRegistry.get('external_market_provider');
+    if (extProvider && extProvider.verifyConnection) {
+      const res = await extProvider.verifyConnection();
+      setVerificationResult(res);
+      await checkAllProviders();
+      return res;
+    }
+
+    const res = await fetch('/api/providers/external/verify', { method: 'POST' });
+    const data = await res.json();
+    setVerificationResult(data);
+    await checkAllProviders();
+    return data;
+  };
 
   const handleStartSync = async () => {
     const provider = providerRegistry.get(selectedProviderId);
@@ -224,18 +242,29 @@ export const SyncDataModal: React.FC<SyncDataModalProps> = ({
               </div>
 
               {/* Status or warning box */}
-              {selectedProviderId === 'external_market_provider' &&
-                providerStatuses[selectedProviderId]?.status === 'NOT_CONFIGURED' && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">Provider Eksternal Belum Dikonfigurasi:</span> Token
-                      API (<code>EXTERNAL_PROVIDER_API_TOKEN</code>) belum diisi. Anda dapat menggunakan{' '}
-                      <strong>Mode Demo</strong> atau <strong>Import Manual (JSON/CSV)</strong> untuk
-                      memasukkan data observasi.
-                    </div>
+              {selectedProviderId === 'external_market_provider' && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-700">Status Provider Eksternal:</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsVerificationModalOpen(true)}
+                      className="px-2.5 py-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 flex items-center gap-1"
+                    >
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>Uji Koneksi & Token</span>
+                    </button>
                   </div>
-                )}
+                  {providerStatuses[selectedProviderId]?.status === 'NOT_CONFIGURED' && (
+                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">Token Belum Terkonfigurasi:</span> Variabel <code>EXTERNAL_PROVIDER_API_TOKEN</code> belum diatur. Gunakan Mode Demo atau Import Manual jika tidak memiliki token API eksternal.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {errorMessage && (
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
@@ -351,6 +380,14 @@ export const SyncDataModal: React.FC<SyncDataModalProps> = ({
           )}
         </div>
       </div>
+
+      {isVerificationModalOpen && (
+        <ProviderVerificationModal
+          onClose={() => setIsVerificationModalOpen(false)}
+          initialResult={verificationResult}
+          onRunTest={handleRunVerification}
+        />
+      )}
     </div>
   );
 };

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { MarketWorkspace, AdObservation } from '../../types/radar';
-import { DataSourceStatus, IngestionJob, MarketDataProvider } from '../../types/provider';
+import { DataSourceStatus, IngestionJob, MarketDataProvider, ProviderVerificationResult } from '../../types/provider';
 import { providerRegistry } from '../../services/providers/ProviderRegistry';
 import { defaultObservationRepository } from '../../services/storage/observationRepository';
 import { PROVIDER_HEALTH_LABELS, formatDateIndonesian } from '../../utils/labels';
+import { ProviderVerificationModal } from '../ProviderVerificationModal';
 import {
   Database,
   Globe,
@@ -18,6 +19,8 @@ import {
   Cpu,
   Clock,
   ExternalLink,
+  ShieldAlert,
+  Sliders,
 } from 'lucide-react';
 
 interface DataSourcesViewProps {
@@ -37,6 +40,8 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
   const [providerStatuses, setProviderStatuses] = useState<Record<string, { status: string; message: string }>>({});
   const [recentJobs, setRecentJobs] = useState<IngestionJob[]>([]);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
+  const [verificationResult, setVerificationResult] = useState<ProviderVerificationResult | null>(null);
 
   const loadData = async () => {
     setIsRefreshing(true);
@@ -59,6 +64,24 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
     setIsRefreshing(false);
   };
 
+  const handleRunVerification = async (): Promise<ProviderVerificationResult> => {
+    const extProvider = providerRegistry.get('external_market_provider');
+    if (extProvider && extProvider.verifyConnection) {
+      const res = await extProvider.verifyConnection();
+      setVerificationResult(res);
+      // Also refresh statuses
+      await loadData();
+      return res;
+    }
+
+    // Direct fallback
+    const res = await fetch('/api/providers/external/verify', { method: 'POST' });
+    const data = await res.json();
+    setVerificationResult(data);
+    await loadData();
+    return data;
+  };
+
   useEffect(() => {
     loadData();
   }, [workspace.id]);
@@ -70,7 +93,7 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
             <Server className="w-3.5 h-3.5" />
-            <span>Fondasi Data Pasar (V1.2)</span>
+            <span>Fondasi Data Pasar (V1.2.1)</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Sumber Data & Status Provider
@@ -81,7 +104,16 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => {
+              setIsVerificationModalOpen(true);
+            }}
+            className="px-3.5 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 shadow-xs flex items-center gap-1.5 transition-colors"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Uji Provider Eksternal</span>
+          </button>
           <button
             onClick={loadData}
             disabled={isRefreshing}
@@ -113,6 +145,7 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
           const health = providerStatuses[p.id] || { status: 'READY', message: '' };
           const healthBadge = PROVIDER_HEALTH_LABELS[health.status] || PROVIDER_HEALTH_LABELS.READY;
           const caps = p.capabilities();
+          const isExternal = p.id === 'external_market_provider';
 
           return (
             <div
@@ -167,21 +200,33 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
 
               <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-[11px] text-slate-400 font-mono">{p.sourceType}</span>
-                {p.id.includes('manual') ? (
-                  <button
-                    onClick={onOpenManualImport}
-                    className="text-xs font-bold text-amber-700 hover:text-amber-800"
-                  >
-                    Buka Import →
-                  </button>
-                ) : (
-                  <button
-                    onClick={onOpenSyncModal}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-700"
-                  >
-                    Sinkronkan →
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {isExternal && (
+                    <button
+                      onClick={() => {
+                        setIsVerificationModalOpen(true);
+                      }}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-2 py-1 rounded-md"
+                    >
+                      Uji Provider
+                    </button>
+                  )}
+                  {p.id.includes('manual') ? (
+                    <button
+                      onClick={onOpenManualImport}
+                      className="text-xs font-bold text-amber-700 hover:text-amber-800"
+                    >
+                      Buka Import →
+                    </button>
+                  ) : (
+                    <button
+                      onClick={onOpenSyncModal}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700"
+                    >
+                      Sinkronkan →
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
@@ -283,6 +328,15 @@ export const DataSourcesView: React.FC<DataSourcesViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Verification Modal */}
+      {isVerificationModalOpen && (
+        <ProviderVerificationModal
+          onClose={() => setIsVerificationModalOpen(false)}
+          initialResult={verificationResult}
+          onRunTest={handleRunVerification}
+        />
+      )}
     </div>
   );
 };

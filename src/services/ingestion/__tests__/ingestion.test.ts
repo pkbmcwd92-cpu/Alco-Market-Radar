@@ -79,6 +79,25 @@ async function runVerificationTests() {
   assert(fp1 === fp2, 'Fingerprint is deterministic for identical content');
   assert(fp1 !== fp3, 'Fingerprint distinguishes between different brands');
 
+  // TEST 4: Schema Drift Resilience (handles unknown fields, nested bodies, messy payloads)
+  const messyPayload = {
+    adArchiveID: 'meta_998877',
+    pageName: 'Skintific Official ID',
+    ad_creative_bodies: ['Moisturizer barrier 5X Ceramide viral!'],
+    title: '5X Ceramide Barrier Moisture Gel',
+    cta_type: 'SHOP_NOW',
+    ad_delivery_start_time: '2026-07-15T00:00:00.000Z',
+    ad_delivery_stop_time: '2026-09-01T00:00:00.000Z',
+    extra_unknown_field_from_scraper: { nestedKey: 123 },
+    random_flags: [true, false],
+  };
+  const normMessy = normalizeRawAd(messyPayload, 'ws_skincare', 'comp_skintific');
+  assert(normMessy.externalAdId === 'meta_998877', 'Correctly mapped adArchiveID to externalAdId');
+  assert(normMessy.advertiserName === 'Skintific Official ID', 'Correctly mapped pageName to advertiserName');
+  assert(normMessy.CTA === 'shop now', 'Normalized SHOP_NOW to shop now CTA');
+  assert(normMessy.observedDays >= 40, 'Computed accurate active days over 40 days');
+  assert(normMessy.rawSourceMetadata !== undefined, 'Preserved rawSourceMetadata for auditability');
+
   console.log(`\n📊 TEST SUMMARY: ${passed} passed, ${failed} failed.\n`);
   if (failed > 0) {
     throw new Error(`${failed} tests failed!`);

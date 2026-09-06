@@ -69,6 +69,23 @@ export interface ProviderSearchResult {
   warning?: string;
 }
 
+export interface ProviderVerificationResult {
+  verified: boolean;
+  status: ProviderHealthStatus;
+  latencyMs: number;
+  actorId: string;
+  tokenConfigured: boolean;
+  message: string;
+  sampleItemCount: number;
+  sampleItemPreview?: {
+    id?: string;
+    pageName?: string;
+    headline?: string;
+    fetchedAt?: string;
+  };
+  details?: Record<string, unknown>;
+}
+
 export interface MarketDataProvider {
   id: string;
   name: string;
@@ -76,6 +93,7 @@ export interface MarketDataProvider {
   capabilities(): ProviderCapabilities;
   searchAds(input: MarketSearchInput): Promise<ProviderSearchResult>;
   healthCheck(): Promise<{ status: ProviderHealthStatus; message: string; details?: Record<string, unknown> }>;
+  verifyConnection?(): Promise<ProviderVerificationResult>;
 }
 
 export interface IngestionError {

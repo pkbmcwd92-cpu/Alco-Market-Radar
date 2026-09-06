@@ -72,7 +72,7 @@ export function normalizeRawAd(
   const description = payload.description ? sanitizeText(payload.description) : null;
 
   // 6. CTA
-  const CTA = normalizeCta(payload.CTA || payload.cta || payload.call_to_action);
+  const CTA = normalizeCta(payload.CTA || payload.cta || payload.cta_type || payload.call_to_action || payload.callToAction);
 
   // 7. URLs and Media
   const rawDest = payload.destinationUrl || 

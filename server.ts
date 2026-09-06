@@ -3,6 +3,11 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import {
+  searchExternalAds,
+  verifyExternalProvider,
+  getProviderConfig,
+} from "./src/services/providers/serverExternalProvider";
 
 dotenv.config();
 
@@ -33,29 +38,28 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
+  const providerCfg = getProviderConfig();
   res.json({
     status: "ok",
     product: "ALCO MARKET RADAR",
-    version: "1.2.0-real-data-foundation",
+    version: "1.2.1-provider-verified-hardening",
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
     model: GEMINI_MODEL,
-    hasExternalProviderToken: Boolean(
-      process.env.EXTERNAL_PROVIDER_API_TOKEN || process.env.APIFY_API_TOKEN
-    ),
+    hasExternalProviderToken: Boolean(providerCfg.apiToken),
   });
 });
 
 // Providers Health & Status Endpoint
 app.get("/api/providers/health", (_req, res) => {
-  const hasToken = Boolean(
-    process.env.EXTERNAL_PROVIDER_API_TOKEN || process.env.APIFY_API_TOKEN
-  );
+  const providerCfg = getProviderConfig();
+  const hasToken = Boolean(providerCfg.apiToken);
 
   res.json({
     demoProviderStatus: "READY",
     manualImportStatus: "READY",
     externalProviderStatus: hasToken ? "READY" : "NOT_CONFIGURED",
     isConfigured: hasToken,
+    actorId: providerCfg.actorId,
     activeProviderMode: process.env.MARKET_DATA_PROVIDER || (hasToken ? "external" : "demo"),
     message: hasToken
       ? "Provider eksternal terhubung dan siap mengambil data observasi publik."
@@ -71,57 +75,52 @@ app.get("/api/providers/health", (_req, res) => {
   });
 });
 
-// Server-side External Provider Proxy Endpoint (Protects API Credentials)
-app.post("/api/providers/external/search", async (req, res) => {
-  const { advertiserName, keyword, country = "ID", limit = 20 } = req.body;
-  const token = process.env.EXTERNAL_PROVIDER_API_TOKEN || process.env.APIFY_API_TOKEN;
-  const actorId = process.env.EXTERNAL_PROVIDER_ACTOR_ID || process.env.APIFY_ACTOR_ID || "curious_coder~facebook-ads-library-scraper";
-
-  if (!token) {
-    return res.status(401).json({
-      code: "NOT_CONFIGURED",
-      message: "Provider eksternal belum dikonfigurasi. Silakan atur EXTERNAL_PROVIDER_API_TOKEN pada environment atau gunakan Manual Import / Mode Demo.",
-      items: [],
+// Provider Verification & Canary Test Endpoint
+app.post("/api/providers/external/verify", async (req, res) => {
+  try {
+    const customConfig = req.body?.actorId ? { actorId: req.body.actorId } : undefined;
+    const diagnostic = await verifyExternalProvider(customConfig);
+    res.json(diagnostic);
+  } catch (err: any) {
+    res.status(500).json({
+      verified: false,
+      status: "UNAVAILABLE",
+      latencyMs: 0,
+      actorId: getProviderConfig().actorId,
+      tokenConfigured: false,
+      message: err?.message || "Terjadi kesalahan internal saat memeriksa status provider.",
+      sampleItemCount: 0,
     });
   }
+});
+
+// Server-side External Provider Proxy Endpoint (Protects API Credentials)
+app.post("/api/providers/external/search", async (req, res) => {
+  const { advertiserName, keyword, country = "ID", limit = 20, activeStatus = "ACTIVE" } = req.body;
 
   try {
-    // Call external compliant provider API using server-side token
-    const apiUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`;
-    const inputPayload = {
-      searchTerms: keyword ? [keyword] : [advertiserName],
-      country: country,
-      adStatus: "ACTIVE",
-      maxItems: Math.min(limit, 50),
-    };
-
-    const externalResponse = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(inputPayload),
+    const result = await searchExternalAds({
+      advertiserName,
+      keyword,
+      country,
+      limit,
+      activeStatus,
     });
 
-    if (!externalResponse.ok) {
-      const errorText = await externalResponse.text().catch(() => "");
-      return res.status(externalResponse.status).json({
-        code: "PROVIDER_ERROR",
-        message: `Provider eksternal merespons dengan status ${externalResponse.status}.`,
-        details: errorText.substring(0, 300),
-        items: [],
-      });
-    }
-
-    const items = await externalResponse.json();
     return res.json({
       providerId: "external_market_provider",
-      items: Array.isArray(items) ? items : [],
-      totalFound: Array.isArray(items) ? items.length : 0,
-      fetchedAt: new Date().toISOString(),
+      items: result.items,
+      totalFound: result.totalFound,
+      fetchedAt: result.fetchedAt,
+      actorId: result.actorId,
+      latencyMs: result.latencyMs,
     });
   } catch (err: any) {
-    return res.status(502).json({
-      code: "NETWORK_ERROR",
-      message: `Gagal menghubungi provider eksternal: ${err?.message || "Koneksi timeout"}`,
+    const status = err.status || 500;
+    return res.status(status).json({
+      code: err.code || "PROVIDER_ERROR",
+      message: err.message || "Gagal mengambil data dari provider eksternal.",
+      details: err.details,
       items: [],
     });
   }
