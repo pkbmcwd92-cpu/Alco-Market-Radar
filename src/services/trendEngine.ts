@@ -275,8 +275,8 @@ export function generateTemporalTrendReport(
   return {
     workspaceId,
     periodDays,
-    currentPeriodLabel: `Past ${periodDays} Days`,
-    previousPeriodLabel: `Prior ${periodDays} Days`,
+    currentPeriodLabel: `${periodDays} Hari Terakhir`,
+    previousPeriodLabel: `${periodDays} Hari Sebelumnya`,
     totalActiveCreatives,
     newCreativesCount,
     disappearedCreativesCount,

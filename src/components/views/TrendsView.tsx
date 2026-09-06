@@ -6,6 +6,14 @@ interface TrendsViewProps {
   trends: MarketTrendMetric[];
 }
 
+const DIMENSION_LABELS: Record<string, string> = {
+  all: 'Semua Dimensi',
+  format: 'Format',
+  hook: 'Hook',
+  angle: 'Angle',
+  offer: 'Offer',
+};
+
 export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
   const [selectedDimension, setSelectedDimension] = useState<string>('all');
 
@@ -21,10 +29,10 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-emerald-600" />
-            Market Trend Engine
+            Mesin Tren Pasar (Market Trend Engine)
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Macro shifts, format migrations, hook saturation, and offer strategy transitions across the category
+            Pergeseran makro, adopsi format, saturasi hook, dan transisi penawaran di seluruh kategori pasar
           </p>
         </div>
 
@@ -38,7 +46,7 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
                 selectedDimension === dim ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              {dim}
+              {DIMENSION_LABELS[dim] || dim}
             </button>
           ))}
         </div>
@@ -47,29 +55,29 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-          <div className="text-slate-500 text-xs font-medium">Fastest Rising Pattern</div>
-          <div className="text-lg font-bold text-emerald-700 mt-1">Short-Form Video Demo</div>
+          <div className="text-slate-500 text-xs font-medium">Pola Naik Tercepat</div>
+          <div className="text-lg font-bold text-emerald-700 mt-1">Video Demo Singkat (Short-Form)</div>
           <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
             <span className="font-mono font-bold text-emerald-700">+25 pp</span>
-            <span>growth over previous 30 days</span>
+            <span>pertumbuhan dibanding 30 hari sebelumnya</span>
           </div>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-          <div className="text-slate-500 text-xs font-medium">Dominant Offer Strategy</div>
-          <div className="text-lg font-bold text-blue-700 mt-1">Multi-Step Bundling</div>
+          <div className="text-slate-500 text-xs font-medium">Strategi Offer Paling Dominan</div>
+          <div className="text-lg font-bold text-blue-700 mt-1">Bundling Solusi Lengkap</div>
           <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
             <span className="font-mono font-bold text-blue-700">+19 pp</span>
-            <span>adopted by 4 of 5 competitors</span>
+            <span>diadopsi oleh 4 dari 5 competitor</span>
           </div>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-          <div className="text-slate-500 text-xs font-medium">Declining Angle</div>
-          <div className="text-lg font-bold text-rose-700 mt-1">Generic Direct Discount</div>
+          <div className="text-slate-500 text-xs font-medium">Angle yang Menurun</div>
+          <div className="text-lg font-bold text-rose-700 mt-1">Diskon Langsung Tanpa Nilai Tambah</div>
           <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
             <span className="font-mono font-bold text-rose-700">-12 pp</span>
-            <span>shifting to value-add bonuses</span>
+            <span>bergeser ke bonus uji coba / konsultasi</span>
           </div>
         </div>
       </div>
@@ -89,10 +97,10 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] uppercase font-bold font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                      {trend.dimension}
+                      {DIMENSION_LABELS[trend.dimension] || trend.dimension}
                     </span>
                     <span className="text-xs text-slate-500">
-                      {trend.competitorBreadthCount} Competitors Active
+                      {trend.competitorBreadthCount} Competitor Aktif
                     </span>
                   </div>
                   <h3 className="text-base font-bold text-slate-900">{trend.name}</h3>
@@ -105,15 +113,15 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
                     {isPositive ? <ArrowUpRight className="w-5 h-5" /> : isNegative ? <ArrowDownRight className="w-5 h-5" /> : <Minus className="w-5 h-5" />}
                     <span>{isPositive ? `+${trend.deltaPercentagePoints}` : trend.deltaPercentagePoints} pp</span>
                   </div>
-                  <div className="text-[10px] text-slate-500">30-day delta</div>
+                  <div className="text-[10px] text-slate-500">Perubahan 30 hari</div>
                 </div>
               </div>
 
               {/* Progress Bar / Comparative visualizer */}
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Previous Period: <strong className="text-slate-700">{trend.previousPeriodPct}%</strong></span>
-                  <span>Current Period: <strong className="text-slate-900 font-bold">{trend.currentPeriodPct}%</strong></span>
+                  <span>Periode Sebelumnya: <strong className="text-slate-700">{trend.previousPeriodPct}%</strong></span>
+                  <span>Periode Saat Ini: <strong className="text-slate-900 font-bold">{trend.currentPeriodPct}%</strong></span>
                 </div>
 
                 {/* Dual bar */}
@@ -121,19 +129,21 @@ export const TrendsView: React.FC<TrendsViewProps> = ({ trends }) => {
                   <div
                     className="h-full bg-slate-300 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(100, trend.previousPeriodPct)}%` }}
-                    title={`Previous: ${trend.previousPeriodPct}%`}
+                    title={`Sebelumnya: ${trend.previousPeriodPct}%`}
                   />
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${isPositive ? 'bg-emerald-600' : 'bg-rose-600'}`}
                     style={{ width: `${Math.min(100, trend.currentPeriodPct)}%` }}
-                    title={`Current: ${trend.currentPeriodPct}%`}
+                    title={`Saat ini: ${trend.currentPeriodPct}%`}
                   />
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 text-xs text-slate-600">
-                <p className="leading-relaxed">{trend.interpretation}</p>
-              </div>
+              {trend.interpretation && (
+                <div className="pt-2 border-t border-slate-100 text-xs text-slate-600">
+                  <p className="leading-relaxed">{trend.interpretation}</p>
+                </div>
+              )}
             </div>
           );
         })}

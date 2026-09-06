@@ -29,66 +29,90 @@ function getGenAI(): GoogleGenAI | null {
   return aiClient;
 }
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
 // Health check endpoint
 app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
     product: "ALCO MARKET RADAR",
-    version: "1.0.0-mvp",
+    version: "1.1.1-hardening",
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    model: GEMINI_MODEL,
   });
 });
 
 // AI Signal Synthesis & Explanation endpoint
-// Strictly adhering to: OBSERVED vs INFERRED vs HYPOTHESIS, and evidence traceability
+// Strictly adhering to: OBSERVED vs INFERRED vs HYPOTHESIS, evidence traceability, and Bahasa Indonesia
 app.post("/api/gemini/synthesize-signals", async (req, res) => {
   const { workspaceName, marketCategory, signals, competitorNames } = req.body;
 
   const ai = getGenAI();
   if (!ai) {
-    // Return deterministic fallback
+    // Return deterministic fallback in Bahasa Indonesia
     return res.json({
       fallback: true,
       data: {
-        summary: `Deterministic analysis across ${competitorNames?.length || 0} competitors in ${workspaceName || "market"}: identified ${signals?.length || 0} active signals with dominant pattern shifts in messaging and formats.`,
+        summary: `Analisis deterministik terhadap ${competitorNames?.length || 0} competitor di ${workspaceName || "pasar"}: teridentifikasi ${signals?.length || 0} sinyal aktif dengan perubahan pola pada pesan dan format materi iklan.`,
         observed: [
-          `Detected ${signals?.length || 0} verified market events backed by concrete ad observations.`,
-          `Activity shifts recorded across competitors: ${(competitorNames || []).slice(0, 3).join(", ")}.`,
+          `Terdeteksi ${signals?.length || 0} peristiwa pasar terverifikasi berdasarkan data observasi creative iklan publik.`,
+          `Aktivitas tercatat pada competitor: ${(competitorNames || []).slice(0, 3).join(", ")}.`,
         ],
         inferred: [
-          "Recent ad changes suggest market positioning adjustments to counter rising customer acquisition friction.",
+          "Perubahan materi iklan publik menunjukkan penyesuaian strategi komunikasi dan diversifikasi format oleh beberapa competitor.",
         ],
         hypotheses: [
-          "Competitors may be shifting creative spend into proof-of-transformation and UGC angles to improve initial hook retention.",
+          "Pola ini mungkin konsisten dengan periode eksperimen atau rotasi creative berkala; tujuan bisnis internal dan efektivitas biaya tidak dapat dipastikan dari data publik.",
         ],
         opportunities: [
-          "Explore unaddressed problem-first hooks that highlight underserved pain points not saturated by the top 3 competitors.",
+          "Uji variasi pesan atau angle yang belum padat digunakan oleh kompetitor utama.",
         ],
         threats: [
-          "Rapid creative turnover among competitors may indicate aggressive iteration and shorter concept fatigue lifecycles.",
+          "Kepadatan penawaran pada format serupa dapat meningkatkan persaingan perhatian audiens.",
         ],
         confidence: "MEDIUM",
+        confidenceAssessment: {
+          evidence: "HIGH",
+          interpretation: "MEDIUM",
+          hypothesis: "LOW",
+          rationale: "Analisis berbasis data observasi publik yang tercatat tanpa asumsi performa privat.",
+        },
         evidenceIds: (signals || []).flatMap((s: any) => (s.evidence || []).map((e: any) => e.evidenceId)).slice(0, 6),
+        nextActions: [
+          "Tinjau bukti pendukung sebelum mengambil keputusan pengujian.",
+          "Pantau kelangsungan materi creative baru selama 7–14 hari ke depan.",
+        ],
       },
     });
   }
 
   try {
-    const prompt = `You are the lead Market Intelligence AI within ALCO MARKET RADAR.
-You strictly respect the ALCO Intelligence philosophy:
-1. Never invent private data (ROAS, revenue, audience targeting, spend are unknown).
-2. Clearly separate OBSERVED (verifiable public data), INFERRED (logical deductions), and HYPOTHESIS (speculative strategic reasoning).
-3. Connect confidence to actual evidence.
+    const prompt = `You are the lead Market Intelligence AI within ALCO MARKET RADAR V1.1.1.
+MANDATORY LANGUAGE RULE:
+Always return ALL natural-language intelligence fields in clear, professional Bahasa Indonesia.
 
-Market Category: ${marketCategory || "General"}
-Workspace: ${workspaceName || "Active Workspace"}
+STRICT EPISTEMIC CONSTRAINTS:
+1. Never invent evidence or metrics.
+2. Never infer private performance (ROAS, revenue, exact ad spend, conversion rates, or profitability are completely unknown).
+3. Never infer private targeting or internal campaign goals.
+4. Never state that a creative is a "winner" or that an ad "failed".
+5. Never treat longevity as proof of profitability (longevity only proves duration of public delivery).
+6. Never treat ad disappearance as proof of poor performance (could be inventory shift, promo expiry, or stock changes).
+7. Never treat category adoption as proof of business effectiveness.
+8. Clearly separate OBSERVED (TERAMATI), INFERRED (INTERPRETASI), and HYPOTHESIS (HIPOTESIS).
+9. Clearly label uncertain statements as hypotheses.
+10. If evidence is weak or insufficient, explicitly state: "Bukti yang tersedia belum cukup untuk menyimpulkan penyebabnya."
+11. All nextActions must be concrete inspection or monitoring steps in Bahasa Indonesia (e.g., "Pantau...", "Bandingkan...", "Tinjau..."). Never recommend ungrounded directives like "Naikkan budget".
+
+Market Category: ${marketCategory || "Umum"}
+Workspace: ${workspaceName || "Ruang Kerja Aktif"}
 Competitors: ${(competitorNames || []).join(", ")}
 Signals: ${JSON.stringify(signals || [], null, 2)}
 
 Produce a structured JSON response matching the schema.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODEL,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -99,27 +123,27 @@ Produce a structured JSON response matching the schema.`;
             observed: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Strictly verifiable observed facts from the provided data",
+              description: "Strictly verifiable observed facts from the provided data in Bahasa Indonesia",
             },
             inferred: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Logical interpretations derived from observed data",
+              description: "Logical interpretations derived from observed data in Bahasa Indonesia",
             },
             hypotheses: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Strategic hypotheses (clearly marked as speculative)",
+              description: "Strategic hypotheses clearly marked as speculative in Bahasa Indonesia",
             },
             opportunities: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Actionable strategic opportunities for brand builders",
+              description: "Actionable strategic opportunities in Bahasa Indonesia",
             },
             threats: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Market threats or competitive risks",
+              description: "Market threats or competitive risks in Bahasa Indonesia",
             },
             confidence: {
               type: Type.STRING,
@@ -131,7 +155,7 @@ Produce a structured JSON response matching the schema.`;
                 evidence: { type: Type.STRING, description: "HIGH, MEDIUM, or LOW based on concrete data coverage" },
                 interpretation: { type: Type.STRING, description: "HIGH, MEDIUM, or LOW based on logical clarity" },
                 hypothesis: { type: Type.STRING, description: "Always LOW or MEDIUM to reflect speculation" },
-                rationale: { type: Type.STRING },
+                rationale: { type: Type.STRING, description: "Explanation in Bahasa Indonesia" },
               },
               required: ["evidence", "interpretation", "hypothesis", "rationale"],
             },
@@ -142,10 +166,10 @@ Produce a structured JSON response matching the schema.`;
             nextActions: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Concrete actions for human marketers to evaluate or test",
+              description: "Concrete actions in Bahasa Indonesia for marketers to evaluate or test",
             },
           },
-          required: ["summary", "observed", "inferred", "hypotheses", "opportunities", "threats", "confidence"],
+          required: ["summary", "observed", "inferred", "hypotheses", "opportunities", "threats", "confidence", "confidenceAssessment", "nextActions"],
         },
       },
     });
@@ -158,13 +182,23 @@ Produce a structured JSON response matching the schema.`;
       fallback: true,
       error: err.message,
       data: {
-        summary: "Analysis generated via deterministic rules engine due to model response fallback.",
-        observed: ["Signals validated via rule-based telemetry."],
-        inferred: ["Market activity reflects ongoing competitive testing."],
-        hypotheses: ["Creative fatigue cycles require regular monitoring."],
-        opportunities: ["Test differentiated messaging angles against incumbent hooks."],
-        threats: ["Competitor saturation in primary offer formats."],
+        summary: "Sinyal pasar dianalisis melalui mesin aturan deterministik akibat kendala respon model AI.",
+        observed: ["Sinyal divalidasi melalui data observasi publik yang tercatat."],
+        inferred: ["Aktivitas pasar mencerminkan rotasi dan pengujian materi iklan secara berkala."],
+        hypotheses: ["Pola materi baru memerlukan pemantauan berkelanjutan untuk melihat durasi tayang."],
+        opportunities: ["Uji sudut pandang pesan yang berbeda terhadap hook yang saat ini dominan."],
+        threats: ["Tingginya kemiripan format iklan dapat memicu kejenuhan respon audiens."],
         confidence: "MEDIUM",
+        confidenceAssessment: {
+          evidence: "HIGH",
+          interpretation: "MEDIUM",
+          hypothesis: "LOW",
+          rationale: "Analisis dilakukan melalui mesin aturan deterministik tanpa inferensi data privat.",
+        },
+        nextActions: [
+          "Tinjau bukti pendukung sebelum mengambil keputusan pengujian.",
+          "Pantau apakah creative baru bertahan lebih dari 14 hari.",
+        ],
         evidenceIds: [],
       },
     });
@@ -179,18 +213,22 @@ app.post("/api/gemini/deconstruct-creative", async (req, res) => {
   if (!ai) {
     // Deterministic heuristic fallback
     const text = `${headline || ""} ${primaryText || ""}`.toLowerCase();
-    let hook = "curiosity";
-    if (text.includes("problem") || text.includes("tired of") || text.includes("struggle") || text.includes("solusi")) hook = "problem";
-    else if (text.includes("review") || text.includes("kata mereka") || text.includes("real results")) hook = "testimonial";
-    else if (text.includes("promo") || text.includes("diskon") || text.includes("%") || text.includes("gratis")) hook = "offer-led";
+    let hook = "unknown";
+    if (text.includes("problem") || text.includes("masalah") || text.includes("jerawat") || text.includes("kemerahan") || text.includes("rusak")) hook = "problem";
+    else if (text.includes("review") || text.includes("kata mereka") || text.includes("testimoni") || text.includes("pengalaman")) hook = "testimonial";
+    else if (text.includes("promo") || text.includes("diskon") || text.includes("%") || text.includes("gratis ongkir") || text.includes("cuma")) hook = "offer-led";
+    else if (text.includes("dokter") || text.includes("bpom") || text.includes("klinis")) hook = "authority";
+    else if (text.includes("hasil") || text.includes("before") || text.includes("after") || text.includes("sembuh")) hook = "result";
 
-    let angle = "pain point";
-    if (text.includes("hasil") || text.includes("before") || text.includes("after") || text.includes("glowing")) angle = "transformation";
-    else if (text.includes("bpom") || text.includes("dokter") || text.includes("terbukti")) angle = "trust";
+    let angle = "unknown";
+    if (text.includes("perih") || text.includes("iritasi") || text.includes("radang") || text.includes("sensitif")) angle = "pain point";
+    else if (text.includes("glowing") || text.includes("cerah") || text.includes("barrier") || text.includes("mulus")) angle = "transformation";
+    else if (text.includes("bpom") || text.includes("dokter") || text.includes("halal") || text.includes("aman")) angle = "trust";
+    else if (text.includes("terjangkau") || text.includes("murah") || text.includes("hemat") || text.includes("kantong")) angle = "price/value";
 
     let offer = "no explicit offer";
-    if (text.includes("paket") || text.includes("bundle") || text.includes("beli 1")) offer = "bundle";
-    else if (text.includes("diskon") || text.includes("off") || text.includes("%")) offer = "discount";
+    if (text.includes("paket") || text.includes("bundle") || text.includes("beli 1 gratis 1")) offer = "bundle";
+    else if (text.includes("diskon") || text.includes("potongan") || text.includes("%")) offer = "discount";
     else if (text.includes("ongkir") || text.includes("free shipping")) offer = "free shipping";
 
     return res.json({
@@ -199,9 +237,9 @@ app.post("/api/gemini/deconstruct-creative", async (req, res) => {
         detectedHook: hook,
         messagingAngle: angle,
         offerType: offer,
-        observableSummary: `Creative combines a ${hook} hook with a ${angle} messaging angle and ${offer} offer format.`,
-        hookConfidence: "MEDIUM",
-        reasoning: "Heuristic syntactic pattern matching on primary copy tokens.",
+        observableSummary: `Creative menggabungkan hook "${hook}" dengan angle pesan "${angle}" dan penawaran "${offer}".`,
+        hookConfidence: hook !== "unknown" ? "MEDIUM" : "LOW",
+        reasoning: "Pencocokan pola kata kunci leksikal deterministik pada teks materi iklan publik.",
       },
     });
   }
@@ -218,10 +256,13 @@ Hook Type: problem | curiosity | result | testimonial | comparison | authority |
 Messaging Angle: pain point | transformation | convenience | price/value | quality | trust | social proof | status | fear/risk reduction | education | differentiation | other | unknown
 Offer Type: discount | bundle | free shipping | bonus | trial | guarantee | limited time | informational | no explicit offer | unknown
 
+MANDATORY LANGUAGE:
+Return observableSummary and reasoning in clear professional Bahasa Indonesia. If no conclusive pattern is found, choose 'unknown' rather than guessing.
+
 Return structured JSON.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODEL,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -231,9 +272,9 @@ Return structured JSON.`;
             detectedHook: { type: Type.STRING },
             messagingAngle: { type: Type.STRING },
             offerType: { type: Type.STRING },
-            observableSummary: { type: Type.STRING },
-            hookConfidence: { type: Type.STRING },
-            reasoning: { type: Type.STRING },
+            observableSummary: { type: Type.STRING, description: "Ringkasan observasi materi dalam Bahasa Indonesia" },
+            hookConfidence: { type: Type.STRING, description: "HIGH, MEDIUM, or LOW" },
+            reasoning: { type: Type.STRING, description: "Alasan klasifikasi leksikal dalam Bahasa Indonesia" },
           },
           required: ["detectedHook", "messagingAngle", "offerType", "observableSummary", "hookConfidence", "reasoning"],
         },
@@ -246,12 +287,12 @@ Return structured JSON.`;
       fallback: true,
       error: err.message,
       data: {
-        detectedHook: "curiosity",
-        messagingAngle: "differentiation",
-        offerType: "informational",
-        observableSummary: "Observable copy analyzed under deterministic rule engine fallback.",
+        detectedHook: "unknown",
+        messagingAngle: "unknown",
+        offerType: "no explicit offer",
+        observableSummary: "Belum dapat diklasifikasikan dengan cukup yakin akibat kendala respon model.",
         hookConfidence: "LOW",
-        reasoning: "API error triggered graceful fallback to basic heuristic analysis.",
+        reasoning: "API error memicu graceful fallback deterministik ke status unclassified.",
       },
     });
   }

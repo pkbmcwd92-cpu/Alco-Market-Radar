@@ -77,11 +77,14 @@ export function clusterCreativeFamilies(ads: AdObservation[]): CreativeFamily[] 
     const sorted = [...memberAds].sort((a, b) => (b.observedDays || 0) - (a.observedDays || 0));
     const repAd = sorted[0];
 
+    const hookLabel = ci.hookType;
+    const angleLabel = ci.messagingAngle;
+
     families.push({
       familyId: `fam_${key.replace(/[^a-zA-Z0-9]/g, '_')}_${index++}`,
       workspaceId: repAd.workspaceId,
       competitorId: repAd.competitorId,
-      name: `${capitalize(ci.hookType)} Hook & ${capitalize(ci.messagingAngle)} Concept (${memberAds.length} variations)`,
+      name: `Kluster Hook ${hookLabel} & Angle ${angleLabel} (${memberAds.length} variasi)`,
       representativeCreativeId: repAd.id,
       memberAdIds: memberAds.map((m) => m.id),
       commonHook: ci.hookType,
@@ -90,7 +93,7 @@ export function clusterCreativeFamilies(ads: AdObservation[]): CreativeFamily[] 
       format: ci.format,
       confidence: memberAds.length > 2 ? 'HIGH' : 'MEDIUM',
       averageLongevityDays: avgDays,
-      description: `Creative cluster sharing ${ci.hookType} hook with ${ci.messagingAngle} messaging angle. Representative variation active for ${repAd.observedDays} observed days.`,
+      description: `Kluster materi iklan dengan kombinasi hook ${hookLabel} dan angle ${angleLabel}. Variasi representatif terpantau aktif selama ${repAd.observedDays} hari.`,
     });
   }
 

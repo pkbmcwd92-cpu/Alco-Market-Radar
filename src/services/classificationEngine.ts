@@ -197,7 +197,7 @@ export function classifyCreativeV1_1(ad: AdObservation): AdvancedCreativeClassif
 
   // 1. Hooks
   const hookScores = scoreTaxonomy(text, HOOK_RULES);
-  let primaryHook: HookType = 'curiosity';
+  let primaryHook: HookType = 'unknown';
   let secondaryHooks: HookType[] = [];
   let hookConfidence: ConfidenceLevel = 'LOW';
 
@@ -206,14 +206,14 @@ export function classifyCreativeV1_1(ad: AdObservation): AdvancedCreativeClassif
     secondaryHooks = hookScores.slice(1, 3).map((s) => s.type);
     hookConfidence = hookScores[0].score >= 4 ? 'HIGH' : hookScores[0].score >= 2 ? 'MEDIUM' : 'LOW';
   } else {
-    // If text is extremely short or has no match
-    primaryHook = text.length > 20 ? 'curiosity' : 'unknown';
+    // If no sufficient deterministic evidence exists, return unknown
+    primaryHook = 'unknown';
     hookConfidence = 'LOW';
   }
 
   // 2. Messaging Angles
   const angleScores = scoreTaxonomy(text, ANGLE_RULES);
-  let primaryAngle: MessagingAngle = 'differentiation';
+  let primaryAngle: MessagingAngle = 'unknown';
   let secondaryAngles: MessagingAngle[] = [];
   let angleConfidence: ConfidenceLevel = 'LOW';
 
@@ -222,7 +222,8 @@ export function classifyCreativeV1_1(ad: AdObservation): AdvancedCreativeClassif
     secondaryAngles = angleScores.slice(1, 3).map((s) => s.type);
     angleConfidence = angleScores[0].score >= 4 ? 'HIGH' : angleScores[0].score >= 2 ? 'MEDIUM' : 'LOW';
   } else {
-    primaryAngle = text.length > 20 ? 'differentiation' : 'unknown';
+    // If no sufficient deterministic evidence exists, return unknown
+    primaryAngle = 'unknown';
     angleConfidence = 'LOW';
   }
 
@@ -254,8 +255,8 @@ export function classifyCreativeV1_1(ad: AdObservation): AdvancedCreativeClassif
   const confidenceAssessment: ConfidenceAssessment = {
     evidence: evidenceConfidence,
     interpretation: interpretationConfidence,
-    hypothesis: 'MEDIUM',
-    rationale: `Evidence assessed from public ad copy (${hasCopy ? 'complete copy' : 'partial copy'}) and media assets. Interpretation based on multi-keyword syntactic patterns (Primary Hook: ${primaryHook}, Primary Angle: ${primaryAngle}).`,
+    hypothesis: 'LOW',
+    rationale: `Bukti dinilai dari materi teks dan aset publik yang dapat diobservasi (${hasCopy ? 'teks lengkap' : 'teks sebagian'}). Interpretasi leksikal: Hook Utama=${primaryHook}, Angle Utama=${primaryAngle}.`,
   };
 
   return {
@@ -286,10 +287,10 @@ export function buildCreativeIntelligenceV1_1(ad: AdObservation): CreativeIntell
   else longevityTier = 'high_longevity';
 
   const strategicImportanceHypothesis = days > 45 
-    ? 'High observed longevity (45+ days) indicates ongoing ad distribution, which may be consistent with positive concept retention; conversion performance cannot be confirmed from public ad observation alone.'
+    ? 'Creative memiliki durasi observasi tinggi. Hal ini menunjukkan creative tetap digunakan dalam periode yang relatif panjang, tetapi performa conversion dan profitabilitas tidak dapat dikonfirmasi dari data publik.'
     : days <= 7 
-    ? 'Newly detected creative within initial observation window; requires monitoring for persistence or rapid discontinuation.'
-    : 'Active observation within intermediate testing lifecycle.';
+    ? 'Creative baru terdeteksi dan masih berada dalam periode observasi awal.'
+    : 'Creative masih aktif dalam periode observasi menengah.';
 
   // Backward-compat overall confidence
   const overallConfidence: ConfidenceLevel = classification.confidenceAssessment.evidence;

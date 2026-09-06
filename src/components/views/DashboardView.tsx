@@ -31,6 +31,13 @@ import {
   Info,
 } from 'lucide-react';
 import { INITIAL_MARKET_OPPORTUNITIES } from '../../data/mockData';
+import {
+  SIGNAL_LABELS,
+  CONFIDENCE_LABELS,
+  SEVERITY_LABELS,
+  formatDateIndonesian,
+  formatDeltaPercentagePoints,
+} from '../../utils/labels';
 
 interface DashboardViewProps {
   workspace: MarketWorkspace;
@@ -93,9 +100,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Longest running ads (Longevity highlights)
   const longRunningAds = [...ads].sort((a, b) => b.observedDays - a.observedDays).slice(0, 3);
 
-  // Newest observed ads
-  const newestAds = [...ads].sort((a, b) => a.observedDays - b.observedDays).slice(0, 3);
-
   // Maximum ads observed for progress calculation in Activity Radar
   const maxObserved = Math.max(...competitors.map((c) => c.observedActiveAds), 1);
 
@@ -107,7 +111,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded text-[10px] font-bold tracking-wider bg-blue-50 text-blue-700 border border-blue-200 uppercase">
-                Active Radar Feed
+                Feed Radar Aktif
               </span>
               <span className="text-xs text-slate-500 font-medium">
                 {workspace.category}
@@ -125,10 +129,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               onClick={handleRunAiSynthesis}
               disabled={isSynthesizing}
-              className="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold shadow-xs transition flex items-center gap-2 shrink-0"
+              className="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold shadow-xs transition flex items-center gap-2 shrink-0 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-white" />
-              <span>{isSynthesizing ? 'Synthesizing with Gemini...' : 'AI Strategic Synthesis'}</span>
+              <span>{isSynthesizing ? 'Menganalisis dengan Gemini...' : 'Sintesis Kecerdasan Pasar (AI)'}</span>
             </button>
           </div>
         </div>
@@ -137,37 +141,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-100">
           <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3.5">
             <div className="text-[10px] uppercase font-bold text-blue-600 mb-1 flex items-center gap-1.5 tracking-wider">
-              <Activity className="w-3.5 h-3.5" /> 1. What Changed?
+              <Activity className="w-3.5 h-3.5" /> 1. Apa yang Berubah?
             </div>
             <p className="text-xs text-slate-700 font-medium leading-relaxed">
-              {signals[0]?.title || 'Recent creative pattern shifts detected'}
+              {signals[0]?.title || 'Terdeteksi pergeseran pola creative dan format terbaru'}
             </p>
           </div>
 
           <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3.5">
             <div className="text-[10px] uppercase font-bold text-indigo-600 mb-1 flex items-center gap-1.5 tracking-wider">
-              <Target className="w-3.5 h-3.5" /> 2. What Matters?
+              <Target className="w-3.5 h-3.5" /> 2. Apa yang Terdeteksi?
             </div>
             <p className="text-xs text-slate-700 font-medium leading-relaxed">
-              {signals.length} market signals active across {competitors.length} monitored competitors.
+              {signals.length} sinyal pasar aktif di antara {competitors.length} competitor yang dipantau.
             </p>
           </div>
 
           <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3.5">
             <div className="text-[10px] uppercase font-bold text-amber-600 mb-1 flex items-center gap-1.5 tracking-wider">
-              <TrendingUp className="w-3.5 h-3.5" /> 3. Why It Matters?
+              <TrendingUp className="w-3.5 h-3.5" /> 3. Mengapa Ini Penting?
             </div>
             <p className="text-xs text-slate-700 font-medium leading-relaxed">
-              Pre-holiday routine bundles and clinical authority are dominating customer attention.
+              Pergeseran proporsi format video dan pesan garansi mendominasi observasi periode terkini.
             </p>
           </div>
 
           <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3.5">
             <div className="text-[10px] uppercase font-bold text-emerald-600 mb-1 flex items-center gap-1.5 tracking-wider">
-              <Zap className="w-3.5 h-3.5" /> 4. What To Investigate?
+              <Zap className="w-3.5 h-3.5" /> 4. Apa yang Perlu Diuji?
             </div>
             <p className="text-xs text-slate-700 font-medium leading-relaxed">
-              Uncontested commuter barrier hook gap & creative family longevity.
+              Peluang pengujian angle minim persaingan & pengamatan retensi creative competitor.
             </p>
           </div>
         </div>
@@ -176,33 +180,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* 2. Key Metrics Bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monitored Brands</div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Competitor Dipantau</div>
           <div className="text-2xl font-bold text-slate-900 font-sans">{competitors.length}</div>
           <div className="text-[10px] text-green-600 font-bold mt-1 flex items-center gap-1">
-            <span>+{competitors.filter((c) => c.status === 'surging').length} Surging this week</span>
+            <span>+{competitors.filter((c) => c.status === 'surging').length} melonjak pekan ini</span>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Creatives</div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Creative Aktif</div>
           <div className="text-2xl font-bold text-slate-900 font-sans">{ads.length}</div>
-          <div className="text-[10px] text-slate-500 font-medium mt-1">Observed across Meta platform</div>
+          <div className="text-[10px] text-slate-500 font-medium mt-1">Teramati di pustaka iklan publik</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Market Signals</div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Sinyal Pasar</div>
           <div className="text-2xl font-bold text-slate-900 font-sans">{signals.length}</div>
           <div className="text-[10px] text-blue-600 font-bold mt-1">
-            {signals.filter((s) => s.confidence === 'HIGH').length} High Confidence
+            {signals.filter((s) => s.confidence === 'HIGH').length} Keyakinan Tinggi
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">New Ad Velocity</div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Laju Creative Baru</div>
           <div className="text-2xl font-bold text-slate-900 font-sans">
-            18.4 <span className="text-sm font-normal text-slate-400">/day</span>
+            18.4 <span className="text-sm font-normal text-slate-400">/hari</span>
           </div>
-          <div className="text-[10px] text-red-500 font-bold mt-1">↑ 12% vs last period</div>
+          <div className="text-[10px] text-blue-600 font-bold mt-1">Rata-rata 7 hari terakhir</div>
         </div>
       </div>
 
@@ -212,18 +216,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-blue-600" />
-              <h2 className="text-base font-bold text-slate-900">AI Market Intelligence Synthesis (Gemini)</h2>
+              <h2 className="text-base font-bold text-slate-900">Sintesis Kecerdasan Pasar AI (Gemini)</h2>
               <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                 aiSynthesis.confidence === 'HIGH' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
               }`}>
-                {aiSynthesis.confidence} CONFIDENCE
+                KEYAKINAN: {CONFIDENCE_LABELS[aiSynthesis.confidence as keyof typeof CONFIDENCE_LABELS] || aiSynthesis.confidence}
               </span>
             </div>
             <button
               onClick={() => setAiSynthesis(null)}
-              className="text-xs text-slate-400 hover:text-slate-700 font-medium"
+              className="text-xs text-slate-400 hover:text-slate-700 font-medium cursor-pointer"
             >
-              Dismiss
+              Tutup
             </button>
           </div>
 
@@ -232,10 +236,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            {/* Observed Facts */}
+            {/* Fakta Teramati */}
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 space-y-2">
               <div className="text-blue-600 font-bold flex items-center gap-1.5 uppercase tracking-wide">
-                <Database className="w-3.5 h-3.5" /> Observed Facts
+                <Database className="w-3.5 h-3.5" /> Fakta Teramati
               </div>
               <ul className="space-y-1.5 text-slate-600">
                 {aiSynthesis.observed.map((item, i) => (
@@ -250,7 +254,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Inferences */}
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 space-y-2">
               <div className="text-indigo-600 font-bold flex items-center gap-1.5 uppercase tracking-wide">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Logical Inferences
+                <CheckCircle2 className="w-3.5 h-3.5" /> Interpretasi Logis
               </div>
               <ul className="space-y-1.5 text-slate-600">
                 {aiSynthesis.inferred.map((item, i) => (
@@ -265,7 +269,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Hypotheses */}
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3.5 space-y-2">
               <div className="text-purple-600 font-bold flex items-center gap-1.5 uppercase tracking-wide">
-                <HelpCircle className="w-3.5 h-3.5" /> Strategic Hypotheses
+                <HelpCircle className="w-3.5 h-3.5" /> Hipotesis Strategis
               </div>
               <ul className="space-y-1.5 text-slate-600">
                 {aiSynthesis.hypotheses.map((item, i) => (
@@ -282,7 +286,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
             <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg">
               <div className="text-emerald-800 font-bold uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                <Zap className="w-3.5 h-3.5 text-emerald-600" /> Actionable Opportunities
+                <Zap className="w-3.5 h-3.5 text-emerald-600" /> Potensi Peluang yang Dapat Diuji
               </div>
               <ul className="space-y-1 text-slate-700">
                 {aiSynthesis.opportunities.map((opp, i) => (
@@ -293,7 +297,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-lg">
               <div className="text-rose-800 font-bold uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Competitive Threats & Saturation
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Potensi Ancaman & Kejenuhan
               </div>
               <ul className="space-y-1 text-slate-700">
                 {aiSynthesis.threats.map((thr, i) => (
@@ -308,30 +312,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2 text-xs">
               <div className="text-slate-700 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[10px]">
                 <Info className="w-3.5 h-3.5 text-blue-600" />
-                <span>Separated Epistemic Confidence Assessment</span>
+                <span>Penilaian Tingkat Keyakinan Terpisah</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-white p-2.5 rounded border border-slate-200">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Evidence</span>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Keyakinan Bukti</span>
                   <span className="text-xs font-bold text-emerald-700">
-                    {aiSynthesis.confidenceAssessment.evidenceConfidence} CONFIDENCE
+                    {CONFIDENCE_LABELS[aiSynthesis.confidenceAssessment.evidenceConfidence as keyof typeof CONFIDENCE_LABELS] || aiSynthesis.confidenceAssessment.evidenceConfidence}
                   </span>
                 </div>
                 <div className="bg-white p-2.5 rounded border border-slate-200">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Interpretation</span>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Keyakinan Interpretasi</span>
                   <span className="text-xs font-bold text-blue-700">
-                    {aiSynthesis.confidenceAssessment.interpretationConfidence} CONFIDENCE
+                    {CONFIDENCE_LABELS[aiSynthesis.confidenceAssessment.interpretationConfidence as keyof typeof CONFIDENCE_LABELS] || aiSynthesis.confidenceAssessment.interpretationConfidence}
                   </span>
                 </div>
                 <div className="bg-white p-2.5 rounded border border-slate-200">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Hypothesis</span>
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Keyakinan Hipotesis</span>
                   <span className="text-xs font-bold text-purple-700">
-                    {aiSynthesis.confidenceAssessment.hypothesisConfidence} CONFIDENCE
+                    {CONFIDENCE_LABELS[aiSynthesis.confidenceAssessment.hypothesisConfidence as keyof typeof CONFIDENCE_LABELS] || aiSynthesis.confidenceAssessment.hypothesisConfidence}
                   </span>
                 </div>
               </div>
               <p className="text-slate-600 text-[11px] pt-1 leading-relaxed">
-                <strong>Rationale:</strong> {aiSynthesis.confidenceAssessment.rationale}
+                <strong>Alasan Keyakinan:</strong> {aiSynthesis.confidenceAssessment.rationale}
               </p>
             </div>
           )}
@@ -341,7 +345,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-lg space-y-2 text-xs">
               <div className="text-blue-900 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[10px]">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                <span>Recommended Verification Steps (Human Next Actions)</span>
+                <span>Langkah Pemantauan & Verifikasi Berikutnya</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
                 {aiSynthesis.nextActions.map((action, idx) => (
@@ -356,20 +360,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       )}
 
-      {/* 3b. Deterministic Market Opportunity Scorecard (Phase 8 & 12) */}
+      {/* 3b. Deterministic Market Opportunity Scorecard */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-500" />
-              Category Opportunity Scorecards
+              Kartu Skor Peluang Kategori
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Quantified, deterministic gap analysis based on competitor saturation and unserved angles
+              Analisis celah pasar berbasis saturasi competitor dan angle yang relatif minim tergarap
             </p>
           </div>
           <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
-            DETERMINISTIC EVALUATION
+            EVALUASI DETERMINISTIK
           </span>
         </div>
 
@@ -383,17 +387,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                      SCORE {opp.score}/100
+                      SKOR {opp.score}/100
                     </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                      {opp.evidenceStrength}% EVIDENCE STRENGTH
+                      {opp.evidenceStrength}% KEKUATAN BUKTI
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900">{opp.title}</h3>
                 </div>
 
                 <div className="text-right shrink-0 bg-white px-2.5 py-1 rounded border border-slate-200 shadow-2xs">
-                  <div className="text-[9px] text-slate-400 uppercase font-bold">Adoption Gap</div>
+                  <div className="text-[9px] text-slate-400 uppercase font-bold">Celah Adopsi</div>
                   <div className="text-base font-bold text-blue-600 font-mono">{opp.adoptionGap}%</div>
                 </div>
               </div>
@@ -402,32 +406,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               <div className="grid grid-cols-3 gap-2 text-center text-xs py-1">
                 <div className="bg-white p-1.5 rounded border border-slate-200">
-                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Novelty</span>
+                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Kebaruan</span>
                   <span className="font-bold text-slate-800">{opp.novelty}%</span>
                 </div>
                 <div className="bg-white p-1.5 rounded border border-slate-200">
-                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Saturation</span>
+                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Saturasi</span>
                   <span className="font-bold text-slate-800">{opp.saturation}%</span>
                 </div>
                 <div className="bg-white p-1.5 rounded border border-slate-200">
-                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Confidence</span>
-                  <span className="font-bold text-emerald-700">{opp.confidence?.evidence || 'HIGH'}</span>
+                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Keyakinan</span>
+                  <span className="font-bold text-emerald-700">{CONFIDENCE_LABELS[opp.confidence?.evidence as keyof typeof CONFIDENCE_LABELS] || 'TINGGI'}</span>
                 </div>
               </div>
 
               {opp.recommendedExploration && (
                 <div className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-200/80">
-                  <strong className="text-slate-800">Recommended Test: </strong>
+                  <strong className="text-slate-800">Rekomendasi Pengujian: </strong>
                   {opp.recommendedExploration}
                 </div>
               )}
 
               <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
                 <span className="truncate max-w-[280px]">
-                  Uncontested angle: <strong className="text-slate-700">{opp.uncontestedAngle || 'N/A'}</strong>
+                  Angle minim persaingan: <strong className="text-slate-700">{opp.uncontestedAngle || 'N/A'}</strong>
                 </span>
                 <span className="font-mono text-[10px] text-blue-600 font-semibold cursor-pointer" onClick={() => onNavigateToTab('signals')}>
-                  Explore Signals →
+                  Eksplorasi Sinyal →
                 </span>
               </div>
             </div>
@@ -435,28 +439,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 4. Sleek Dual-Column: RADAR Critical Market Signals & Competitor Activity Radar */}
+      {/* 4. Dual-Column: Sinyal Pasar Penting & Radar Aktivitas Competitor */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Critical Market Signals */}
         <div className="lg:col-span-2 space-y-6 flex flex-col">
           <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col flex-grow">
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                <span className="text-blue-600 font-black">RADAR</span> Critical Market Signals
+                <span className="text-blue-600 font-black">RADAR</span> Sinyal Pasar Penting
               </h2>
 
               <div className="flex items-center gap-1.5 text-xs">
-                {['all', 'critical', 'high', 'medium'].map((sev) => (
+                {[
+                  { id: 'all', label: 'Semua' },
+                  { id: 'critical', label: 'Kritis' },
+                  { id: 'high', label: 'Tinggi' },
+                  { id: 'medium', label: 'Sedang' },
+                ].map((item) => (
                   <button
-                    key={sev}
-                    onClick={() => setFilterSeverity(sev)}
-                    className={`px-2.5 py-1 rounded capitalize transition text-[11px] font-medium ${
-                      filterSeverity === sev
+                    key={item.id}
+                    onClick={() => setFilterSeverity(item.id)}
+                    className={`px-2.5 py-1 rounded transition text-[11px] font-medium cursor-pointer ${
+                      filterSeverity === item.id
                         ? 'bg-blue-600 text-white font-semibold'
                         : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                     }`}
                   >
-                    {sev}
+                    {item.label}
                   </button>
                 ))}
               </div>
@@ -479,16 +488,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <div className={`w-1 ${accentColor} rounded-full shrink-0`} />
                     <div className="flex-grow min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="px-2 py-0.5 bg-blue-600 text-white text-[9px] font-bold rounded uppercase">
-                            {signal.type.replace(/_/g, ' ')}
+                            {SIGNAL_LABELS[signal.type] || signal.type.replace(/_/g, ' ')}
                           </span>
                           <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[9px] font-bold rounded uppercase">
-                            {signal.confidence} Confidence
+                            KEYAKINAN: {CONFIDENCE_LABELS[signal.confidence] || signal.confidence}
                           </span>
                         </div>
                         <span className="text-[10px] text-slate-400 font-medium">
-                          {new Date(signal.detectedAt).toLocaleDateString()}
+                          {formatDateIndonesian(signal.detectedAt)}
                         </span>
                       </div>
 
@@ -500,13 +509,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="bg-white p-2.5 border border-slate-200 rounded text-[11px]">
                           <span className="block text-slate-400 font-bold uppercase mb-1 text-[9px] tracking-wider">
-                            Observed
+                            Fakta Teramati
                           </span>
                           <span className="text-slate-700">{signal.triad.observed}</span>
                         </div>
                         <div className="bg-white p-2.5 border border-slate-200 rounded text-[11px]">
                           <span className="block text-blue-600 font-bold uppercase mb-1 text-[9px] tracking-wider">
-                            Inferred
+                            Interpretasi Logis
                           </span>
                           <span className="text-slate-700">{signal.triad.inferred}</span>
                         </div>
@@ -514,13 +523,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                       <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-xs">
                         <span className="text-[10px] text-slate-400">
-                          {signal.evidence.length} evidence points • {signal.relatedAds.length} linked ads
+                          {signal.evidence.length} titik bukti • {signal.relatedAds.length} iklan terkait
                         </span>
                         <button
                           onClick={() => onSelectSignal(signal)}
-                          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider flex items-center gap-1"
+                          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                         >
-                          View Evidence →
+                          Periksa Rantai Bukti →
                         </button>
                       </div>
                     </div>
@@ -537,9 +546,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Competitor Activity Radar
+                  Radar Aktivitas Competitor
                 </h2>
-                <span className="text-[10px] text-emerald-400 font-medium">Real-Time</span>
+                <span className="text-[10px] text-emerald-400 font-medium">Data Terkini</span>
               </div>
 
               <div className="space-y-4">
@@ -555,7 +564,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           {comp.name}
                         </span>
                         <span className="text-[10px] text-slate-400">
-                          {comp.observedActiveAds} Ads Observed
+                          {comp.observedActiveAds} Creative Diamati
                         </span>
                       </div>
                       <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -572,11 +581,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div className="mt-6 pt-5 border-t border-slate-800">
               <div className="p-3 bg-slate-800 rounded-lg">
-                <div className="text-[10px] text-blue-400 font-bold uppercase mb-1">ALCO Hypothesis</div>
+                <div className="text-[10px] text-blue-400 font-bold uppercase mb-1">Hipotesis Pengamatan ALCO</div>
                 <p className="text-[11px] leading-relaxed text-slate-300">
                   {signals[0]?.hypothesis
                     ? signals[0].hypothesis
-                    : "Competitor 'Somethinc' may be testing a new 'Result-Led' campaign strategy based on the recent surge in creative longevity of their 12.12 teaser ads."}
+                    : "Peningkatan volume materi iklan baru mungkin konsisten dengan pengujian variasi berkala, namun performa conversion atau strategi internal advertiser tidak dapat dipastikan tanpa data privat."}
                 </p>
               </div>
             </div>
@@ -592,17 +601,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
-                Category Trend Movers
+                Pergerakan Tren Kategori
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Frequency shifts measured across active observed creative inventory
+                Pergeseran frekuensi terukur dari inventori creative aktif
               </p>
             </div>
             <button
               onClick={() => onNavigateToTab('trends')}
-              className="text-xs text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
             >
-              View All Trends →
+              Lihat Semua Tren →
             </button>
           </div>
 
@@ -615,7 +624,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <div>
                   <div className="font-semibold text-slate-800">{trend.name}</div>
                   <div className="text-[11px] text-slate-500 mt-0.5">
-                    Used by {trend.competitorBreadthCount} competitors ({trend.dimension.toUpperCase()})
+                    Digunakan oleh {trend.competitorBreadthCount} competitor ({trend.dimension.toUpperCase()})
                   </div>
                 </div>
 
@@ -623,7 +632,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div className={`font-mono font-bold text-sm ${
                     trend.deltaPercentagePoints > 0 ? 'text-emerald-600' : 'text-rose-600'
                   }`}>
-                    {trend.deltaPercentagePoints > 0 ? `+${trend.deltaPercentagePoints} pp` : `${trend.deltaPercentagePoints} pp`}
+                    {formatDeltaPercentagePoints(trend.deltaPercentagePoints)}
                   </div>
                   <div className="text-[10px] text-slate-400">
                     {trend.previousPeriodPct}% → {trend.currentPeriodPct}%
@@ -640,17 +649,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-purple-600" />
-                Observed Creative Longevity
+                Durasi Tayang Creative Teramati
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Long-running public ads (Hypothesis: battle-tested concept)
+                Creative dengan durasi tayang publik terpanjang (Catatan: durasi tidak membuktikan profitabilitas)
               </p>
             </div>
             <button
               onClick={() => onNavigateToTab('creatives')}
-              className="text-xs text-blue-600 hover:text-blue-700 font-semibold"
+              className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
             >
-              View All Creatives →
+              Lihat Semua Creative →
             </button>
           </div>
 
@@ -671,7 +680,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div className="flex items-center justify-between text-[11px] mb-0.5">
                     <span className="font-semibold text-slate-800">{ad.advertiserName}</span>
                     <span className="font-mono text-purple-700 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
-                      {ad.observedDays} Days Observed
+                      {ad.observedDays} Hari Teramati
                     </span>
                   </div>
                   <div className="text-xs font-semibold text-slate-800 truncate group-hover:text-blue-600 transition">

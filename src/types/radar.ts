@@ -77,6 +77,11 @@ export type CtaType =
 export type CompetitorStatus = 'active' | 'pausing' | 'surging' | 'dormant';
 export type MonitoringStatus = 'monitoring' | 'paused' | 'archived';
 export type CompetitorPriority = 'high' | 'medium' | 'low';
+export type ObservationSource = 
+  | 'META_ADS_LIBRARY' 
+  | 'PUBLIC_OBSERVATION' 
+  | 'USER_PROVIDED' 
+  | 'SYNTHETIC_DEMO';
 
 export interface MarketWorkspace {
   id: string;
@@ -338,6 +343,7 @@ export interface MarketTrendMetric {
   deltaPercentagePoints: number;
   trendDirection: 'up' | 'down' | 'neutral';
   competitorBreadthCount: number; // how many competitors use this
+  interpretation?: string;
 }
 
 /**
