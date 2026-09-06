@@ -36,10 +36,95 @@ app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
     product: "ALCO MARKET RADAR",
-    version: "1.1.1-hardening",
+    version: "1.2.0-real-data-foundation",
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
     model: GEMINI_MODEL,
+    hasExternalProviderToken: Boolean(
+      process.env.EXTERNAL_PROVIDER_API_TOKEN || process.env.APIFY_API_TOKEN
+    ),
   });
+});
+
+// Providers Health & Status Endpoint
+app.get("/api/providers/health", (_req, res) => {
+  const hasToken = Boolean(
+    process.env.EXTERNAL_PROVIDER_API_TOKEN || process.env.APIFY_API_TOKEN
+  );
+
+  res.json({
+    demoProviderStatus: "READY",
+    manualImportStatus: "READY",
+    externalProviderStatus: hasToken ? "READY" : "NOT_CONFIGURED",
+    isConfigured: hasToken,
+    activeProviderMode: process.env.MARKET_DATA_PROVIDER || (hasToken ? "external" : "demo"),
+    message: hasToken
+      ? "Provider eksternal terhubung dan siap mengambil data observasi publik."
+      : "Provider eksternal belum dikonfigurasi. Mode Demo dan Import Manual tetap siap digunakan.",
+    capabilities: {
+      searchByAdvertiser: true,
+      searchByKeyword: true,
+      searchByCountry: true,
+      fetchMedia: true,
+      fetchLandingPageUrl: true,
+      supportsHistoricalData: true,
+    },
+  });
+});
+
+// Server-side External Provider Proxy Endpoint (Protects API Credentials)
+app.post("/api/providers/external/search", async (req, res) => {
+  const { advertiserName, keyword, country = "ID", limit = 20 } = req.body;
+  const token = process.env.EXTERNAL_PROVIDER_API_TOKEN || process.env.APIFY_API_TOKEN;
+  const actorId = process.env.EXTERNAL_PROVIDER_ACTOR_ID || process.env.APIFY_ACTOR_ID || "curious_coder~facebook-ads-library-scraper";
+
+  if (!token) {
+    return res.status(401).json({
+      code: "NOT_CONFIGURED",
+      message: "Provider eksternal belum dikonfigurasi. Silakan atur EXTERNAL_PROVIDER_API_TOKEN pada environment atau gunakan Manual Import / Mode Demo.",
+      items: [],
+    });
+  }
+
+  try {
+    // Call external compliant provider API using server-side token
+    const apiUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${encodeURIComponent(token)}`;
+    const inputPayload = {
+      searchTerms: keyword ? [keyword] : [advertiserName],
+      country: country,
+      adStatus: "ACTIVE",
+      maxItems: Math.min(limit, 50),
+    };
+
+    const externalResponse = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inputPayload),
+    });
+
+    if (!externalResponse.ok) {
+      const errorText = await externalResponse.text().catch(() => "");
+      return res.status(externalResponse.status).json({
+        code: "PROVIDER_ERROR",
+        message: `Provider eksternal merespons dengan status ${externalResponse.status}.`,
+        details: errorText.substring(0, 300),
+        items: [],
+      });
+    }
+
+    const items = await externalResponse.json();
+    return res.json({
+      providerId: "external_market_provider",
+      items: Array.isArray(items) ? items : [],
+      totalFound: Array.isArray(items) ? items.length : 0,
+      fetchedAt: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    return res.status(502).json({
+      code: "NETWORK_ERROR",
+      message: `Gagal menghubungi provider eksternal: ${err?.message || "Koneksi timeout"}`,
+      items: [],
+    });
+  }
 });
 
 // AI Signal Synthesis & Explanation endpoint

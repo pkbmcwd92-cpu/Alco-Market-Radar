@@ -79,9 +79,34 @@ export type MonitoringStatus = 'monitoring' | 'paused' | 'archived';
 export type CompetitorPriority = 'high' | 'medium' | 'low';
 export type ObservationSource = 
   | 'META_ADS_LIBRARY' 
+  | 'EXTERNAL_PROVIDER'
+  | 'MANUAL_IMPORT'
   | 'PUBLIC_OBSERVATION' 
   | 'USER_PROVIDED' 
   | 'SYNTHETIC_DEMO';
+
+export type VerificationLevel = 
+  | 'DIRECT_PUBLIC' 
+  | 'PROVIDER_REPORTED' 
+  | 'USER_PROVIDED' 
+  | 'SYNTHETIC';
+
+export interface ObservationProvenance {
+  source: ObservationSource;
+  providerId?: string;
+  externalId?: string;
+  sourceUrl?: string;
+  fetchedAt: string;
+  importedAt?: string;
+  verificationLevel: VerificationLevel;
+}
+
+export interface FieldProvenance<T = unknown> {
+  field: string;
+  value: T;
+  source: ObservationSource;
+  verification: 'VERIFIED_PUBLIC' | 'PROVIDER_REPORTED' | 'USER_PROVIDED' | 'UNVERIFIED' | 'UNAVAILABLE';
+}
 
 export interface MarketWorkspace {
   id: string;
@@ -136,7 +161,9 @@ export interface AdObservation {
   mediaUrl: string;
   thumbnailUrl: string;
   creativeId: string;
-  observationSource: 'META_ADS_LIBRARY' | 'PUBLIC_OBSERVATION' | 'USER_PROVIDED' | 'SYNTHETIC_DEMO';
+  observationSource: ObservationSource;
+  provenance?: ObservationProvenance;
+  fingerprint?: string;
   rawSourceMetadata?: Record<string, any>;
   observedDays: number;
 }

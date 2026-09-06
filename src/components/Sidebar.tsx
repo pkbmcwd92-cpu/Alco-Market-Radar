@@ -11,6 +11,7 @@ import {
   FileText,
   Settings,
   ShieldCheck,
+  Database,
 } from 'lucide-react';
 
 export type TabType = 
@@ -20,6 +21,7 @@ export type TabType =
   | 'creatives'
   | 'signals'
   | 'trends'
+  | 'data-sources'
   | 'landing-pages'
   | 'alco-bridge'
   | 'reports'
@@ -43,8 +45,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'ads' as TabType, label: 'Ad Intelligence', icon: Eye },
     { id: 'creatives' as TabType, label: 'Creative Families & Longevity', icon: Layers },
     { id: 'trends' as TabType, label: 'Market Trend Engine', icon: TrendingUp },
+    { id: 'data-sources' as TabType, label: 'Sumber Data & Sync', icon: Database, highlight: true },
     { id: 'landing-pages' as TabType, label: 'Landing Page Audit', icon: Globe },
-    { id: 'alco-bridge' as TabType, label: 'ALCO Ads Bridge', icon: Share2, highlight: true },
+    { id: 'alco-bridge' as TabType, label: 'ALCO Ads Bridge', icon: Share2 },
     { id: 'reports' as TabType, label: 'Intelligence Reports', icon: FileText },
     { id: 'workspaces' as TabType, label: 'Workspaces & Settings', icon: Settings },
   ];

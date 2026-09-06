@@ -106,9 +106,25 @@ export const LONGEVITY_LABELS: Record<LongevityTier, string> = {
 
 export const OBSERVATION_SOURCE_LABELS: Record<ObservationSource, string> = {
   META_ADS_LIBRARY: 'Meta Ads Library',
+  EXTERNAL_PROVIDER: 'Provider Eksternal',
+  MANUAL_IMPORT: 'Import Manual',
   PUBLIC_OBSERVATION: 'Observasi Publik',
-  USER_PROVIDED: 'Data dari Pengguna',
+  USER_PROVIDED: 'Data Pengguna',
   SYNTHETIC_DEMO: 'Data Demo Sintetis',
+};
+
+export const PROVIDER_HEALTH_LABELS: Record<string, { label: string; color: string }> = {
+  READY: { label: 'Siap', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  NOT_CONFIGURED: { label: 'Belum Dikonfigurasi', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  DEGRADED: { label: 'Terbatas', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+  UNAVAILABLE: { label: 'Tidak Tersedia', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+};
+
+export const VERIFICATION_LABELS: Record<string, string> = {
+  DIRECT_PUBLIC: 'Publik Langsung',
+  PROVIDER_REPORTED: 'Laporan Provider',
+  USER_PROVIDED: 'Disediakan Pengguna',
+  SYNTHETIC: 'Sintetis / Simulasi',
 };
 
 export const STATUS_LABELS: Record<string, string> = {

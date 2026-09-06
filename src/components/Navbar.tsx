@@ -1,6 +1,6 @@
 import React from 'react';
 import { MarketWorkspace } from '../types/radar';
-import { Radio, Plus, Layers, Zap, Shield, Sparkles, ChevronDown } from 'lucide-react';
+import { Radio, Plus, Layers, Zap, Shield, Sparkles, ChevronDown, RefreshCw, UploadCloud } from 'lucide-react';
 
 interface NavbarProps {
   workspaces: MarketWorkspace[];
@@ -8,6 +8,8 @@ interface NavbarProps {
   onSelectWorkspace: (ws: MarketWorkspace) => void;
   onOpenNewAdModal: () => void;
   onTriggerSurgeSimulation: () => void;
+  onOpenSyncModal?: () => void;
+  onOpenManualImport?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,6 +18,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectWorkspace,
   onOpenNewAdModal,
   onTriggerSurgeSimulation,
+  onOpenSyncModal,
+  onOpenManualImport,
 }) => {
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-8 flex items-center justify-between gap-4 sticky top-0 z-40">
@@ -30,9 +34,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               <h1 className="font-bold text-base sm:text-lg tracking-tight text-slate-900 leading-none">
                 ALCO <span className="text-blue-600">RADAR</span>
               </h1>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 bg-blue-50 text-blue-700 border border-blue-200 rounded">
+                V1.2
+              </span>
             </div>
             <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-0.5">
-              Market Intelligence
+              Real Data Foundation
             </p>
           </div>
         </div>
@@ -55,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Dropdown Menu */}
           <div className="absolute left-0 mt-1.5 w-64 rounded-xl bg-white border border-slate-200 shadow-xl p-1.5 hidden group-hover:block z-50">
             <div className="text-[10px] uppercase font-bold text-slate-400 px-2.5 py-1 tracking-wider">
-              Select Monitored Category
+              Pilih Workspace Terpantau
             </div>
             {workspaces.map((ws) => (
               <button
@@ -83,26 +90,39 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Center / Right: Status Pills & Action Buttons */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* System Active Status Pill */}
-        <div className="flex gap-2 text-xs font-medium">
-          <span className="px-2.5 sm:px-3 py-1 bg-green-100 text-green-700 rounded-full flex items-center gap-1.5 text-xs font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="hidden xs:inline">System Active</span>
-          </span>
-          <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full border border-slate-200 text-xs hidden lg:inline-flex items-center">
-            Last Sync: 12m ago
-          </span>
-        </div>
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Quick Sync Data Button */}
+        {onOpenSyncModal && (
+          <button
+            onClick={onOpenSyncModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50/60 hover:bg-blue-100/80 text-blue-700 text-xs font-semibold transition shadow-2xs"
+            title="Sinkronkan observasi iklan kompetitor"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sinkronkan Data</span>
+          </button>
+        )}
+
+        {/* Quick Manual Import */}
+        {onOpenManualImport && (
+          <button
+            onClick={onOpenManualImport}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-2xs"
+            title="Import JSON atau CSV observasi publik"
+          >
+            <UploadCloud className="w-3.5 h-3.5 text-amber-600" />
+            <span>Import Data</span>
+          </button>
+        )}
 
         {/* Live Simulation Trigger */}
         <button
           onClick={onTriggerSurgeSimulation}
-          title="Simulate a sudden competitor launch surge to test deterministic detection & AI synthesis"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-xs font-medium transition shadow-2xs"
+          title="Simulasikan lonjakan peluncuran kreatif kompetitor untuk menguji deteksi radar & sintesis AI"
+          className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 text-xs font-medium transition shadow-2xs"
         >
           <Zap className="w-3.5 h-3.5 text-amber-500" />
-          <span>Simulate Surge</span>
+          <span>Simulasi Lonjakan</span>
         </button>
 
         {/* Ingest Ad Button */}
@@ -111,8 +131,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Ingest Ad Observation</span>
-          <span className="md:hidden">Ingest Ad</span>
+          <span className="hidden sm:inline">Catat Observasi</span>
+          <span className="sm:hidden">Tambah</span>
         </button>
       </div>
     </header>
