@@ -330,8 +330,9 @@ export async function verifyExternalProvider(
   } catch (err: any) {
     const latencyMs = Date.now() - startTime;
     const isAuth = err.status === 401 || err.status === 403 || err.code === 'INVALID_CREDENTIALS';
+    const isRateLimited = err.status === 429 || err.code === 'RATE_LIMITED';
     const isTimeout = err.status === 504 || err.code === 'PROVIDER_TIMEOUT' || err.code === 'TIMEOUT';
-    const isNetwork = err.code === 'NETWORK_ERROR' || err.status === 502 || (!err.status && !isTimeout);
+    const isNetwork = err.code === 'NETWORK_ERROR' || err.status === 502 || (!err.status && !isTimeout && !isRateLimited);
 
     if (isAuth) {
       return {
@@ -352,6 +353,28 @@ export async function verifyExternalProvider(
         message: 'Provider dapat dihubungi, tetapi autentikasi gagal. Periksa token API.',
         warnings: [],
         errors: ['INVALID_CREDENTIALS: Token API eksternal ditolak oleh provider.'],
+      };
+    }
+
+    if (isRateLimited) {
+      return {
+        providerId: 'external_market_provider',
+        verified: false,
+        status: 'DEGRADED',
+        checkedAt,
+        latencyMs,
+        reachable: true,
+        authenticated: true,
+        rawItemsReceived: 0,
+        normalizedItems: 0,
+        validItems: 0,
+        rejectedItems: 0,
+        actorId: config.actorId,
+        isActorConfigured,
+        tokenConfigured: true,
+        message: 'Batas kuota / rate limit provider eksternal tercapai. Silakan coba beberapa saat lagi.',
+        warnings: ['RATE_LIMITED: Terkena pembatasan frekuensi pemanggilan provider.'],
+        errors: ['RATE_LIMITED'],
       };
     }
 
