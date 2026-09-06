@@ -10,7 +10,11 @@ import {
   Zap,
   Code2,
   ExternalLink,
+  Target,
+  Database,
+  ArrowUpRight,
 } from 'lucide-react';
+import { INITIAL_INTEGRATION_CONTRACT, INITIAL_MARKET_OPPORTUNITIES } from '../../data/mockData';
 
 interface AlcoBridgeViewProps {
   workspaceName: string;
@@ -18,199 +22,154 @@ interface AlcoBridgeViewProps {
 
 export const AlcoBridgeView: React.FC<AlcoBridgeViewProps> = ({ workspaceName }) => {
   const [showJsonSchema, setShowJsonSchema] = useState(false);
-
-  // Sample contract data illustrating real cross-product communication
-  const sampleContract: AlcoAdsIntegrationContract = {
-    firstPartyContext: {
-      connectedAccountId: 'act_alco_demo_101',
-      accountName: 'Lumina Derma First-Party Brand',
-      activeCreativesCount: 14,
-      topFirstPartyAngles: ['discount', 'general transformation'],
-      topFirstPartyHooks: ['offer-led', 'curiosity'],
-      topFirstPartyOffers: ['15% off coupon', 'free shipping'],
-      flaggedFatiguedCreativeCount: 4,
-    },
-    marketRadarContext: {
-      workspaceId: 'ws_id_skincare',
-      workspaceName: workspaceName,
-      monitoredCompetitorsCount: 5,
-      activeSignalsCount: 3,
-      dominantSurgingAngles: ['clinical authority', 'barrier protection'],
-      dominantSurgingHooks: ['doctor review', 'problem-first'],
-    },
-    synthesizedOpportunities: [
-      {
-        id: 'opp_1',
-        opportunityTitle: 'Counter Fatigue with Clinical Authority Proof',
-        radarEvidence: 'Competitors shifted 65% of ads to doctor endorsements and bio-fermentation with 45+ observed days active.',
-        firstPartyAdDiagnosis: 'Internal 3-second retention dropped -32% on lifestyle discount images.',
-        recommendedAction: 'Deploy 3 vertical UGC video hooks featuring dermatologist formulation breakdown.',
-        confidence: 'HIGH',
-      },
-      {
-        id: 'opp_2',
-        opportunityTitle: 'Protect Margin via Routine Bundling',
-        radarEvidence: '4 of 5 monitored competitors moved away from single item discounts to 3-step routine bundles (Rp 189k-249k).',
-        firstPartyAdDiagnosis: 'Single-SKU discount ads are eroding blended contribution margin and AOV.',
-        recommendedAction: 'Package Barrier Repair Serum + Cleanser into "Skin Rescue Kit" to anchor AOV at Rp 199k+.',
-        confidence: 'HIGH',
-      },
-    ],
-  };
+  const sampleContract = INITIAL_INTEGRATION_CONTRACT;
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+    <div className="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto font-sans text-slate-900">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            Ecosystem Architecture
-          </span>
-          <span className="text-xs text-slate-400 font-mono">Clean Integration Boundary</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+              Ecosystem Architecture
+            </span>
+            <span className="text-xs text-slate-500 font-mono">Bridge Contract V1.1</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Share2 className="w-6 h-6 text-blue-600" />
+            Alco Bridge: Market Radar ↔ Meta Ads Integration
+          </h1>
+          <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+            Alco Market Radar connects external market intelligence to first-party advertising execution without code entanglement or brittle repository coupling.
+          </p>
         </div>
-        <h1 className="text-2xl font-black text-white flex items-center gap-2">
-          <Share2 className="w-6 h-6 text-indigo-400" />
-          ALCO Cross-Product Integration Bridge
-        </h1>
-        <p className="text-xs text-slate-400 mt-1 max-w-3xl">
-          Alco Market Radar connects external market intelligence to First-Party advertising execution without code entanglement or brittle repository coupling.
-        </p>
+
+        <button
+          onClick={() => setShowJsonSchema(!showJsonSchema)}
+          className="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+        >
+          <Code2 className="w-4 h-4 text-blue-600" />
+          <span>{showJsonSchema ? 'Hide Contract JSON' : 'Inspect Contract JSON'}</span>
+        </button>
       </div>
 
       {/* Conceptual Distinction: 3 Pillars */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Pillar 1: ALCO ADS */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
-          <div className="text-blue-400 text-xs font-bold uppercase tracking-wider">
-            Product I: Sibling Product
+        <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3 shadow-xs">
+          <div className="text-blue-600 text-[10px] font-bold uppercase tracking-wider">
+            Sibling Product
           </div>
-          <h2 className="text-base font-extrabold text-white">ALCO META ADS ANALYSIS</h2>
-          <div className="text-xs font-semibold text-blue-300 bg-blue-950/40 p-2.5 rounded border border-blue-800/40">
-            "WHAT IS HAPPENING TO MY ADVERTISING?"
+          <h2 className="text-base font-bold text-slate-900">Alco Meta Ads Analysis</h2>
+          <div className="text-xs font-semibold text-blue-700 bg-blue-50 p-2.5 rounded border border-blue-100">
+            «What is happening to MY advertising?»
           </div>
-          <ul className="text-xs text-slate-300 space-y-1.5 pt-1">
-            <li className="flex items-center gap-2">✓ First-party ad spend & ROAS</li>
-            <li className="flex items-center gap-2">✓ Internal creative fatigue detection</li>
-            <li className="flex items-center gap-2">✓ Funnel leak diagnosis</li>
-            <li className="flex items-center gap-2">✓ First-party landing page conversion</li>
+          <ul className="text-xs text-slate-600 space-y-1.5 pt-1">
+            <li className="flex items-center gap-2"><span className="text-blue-600 font-bold">✓</span> First-party ad spend & ROAS</li>
+            <li className="flex items-center gap-2"><span className="text-blue-600 font-bold">✓</span> Internal creative fatigue detection</li>
+            <li className="flex items-center gap-2"><span className="text-blue-600 font-bold">✓</span> Funnel leak diagnosis</li>
+            <li className="flex items-center gap-2"><span className="text-blue-600 font-bold">✓</span> First-party checkout conversion</li>
           </ul>
         </div>
 
         {/* Pillar 2: ALCO RADAR */}
-        <div className="bg-slate-900 border border-indigo-500/40 rounded-xl p-5 space-y-3 shadow-lg">
-          <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider flex items-center justify-between">
-            <span>Product II: Current MVP</span>
-            <span className="text-[10px] bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-300">ACTIVE</span>
+        <div className="bg-white border border-blue-300 rounded-xl p-5 space-y-3 shadow-xs">
+          <div className="text-blue-600 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between">
+            <span>Current Product</span>
+            <span className="text-[10px] bg-blue-100 px-2 py-0.5 rounded text-blue-800 font-bold">ACTIVE RADAR</span>
           </div>
-          <h2 className="text-base font-extrabold text-white">ALCO MARKET RADAR</h2>
-          <div className="text-xs font-semibold text-indigo-300 bg-indigo-950/40 p-2.5 rounded border border-indigo-800/40">
-            "WHAT IS HAPPENING IN MY MARKET?"
+          <h2 className="text-base font-bold text-slate-900">Alco Market Radar</h2>
+          <div className="text-xs font-semibold text-indigo-700 bg-indigo-50 p-2.5 rounded border border-indigo-100">
+            «What is happening in MY market?»
           </div>
-          <ul className="text-xs text-slate-300 space-y-1.5 pt-1">
-            <li className="flex items-center gap-2">✓ Competitor launch velocity & surges</li>
-            <li className="flex items-center gap-2">✓ Public creative longevity tracking</li>
-            <li className="flex items-center gap-2">✓ Macro format & hook pattern shifts</li>
-            <li className="flex items-center gap-2">✓ Market gaps & unserved angles</li>
+          <ul className="text-xs text-slate-600 space-y-1.5 pt-1">
+            <li className="flex items-center gap-2"><span className="text-indigo-600 font-bold">✓</span> Competitor launch velocity & surges</li>
+            <li className="flex items-center gap-2"><span className="text-indigo-600 font-bold">✓</span> Public creative longevity tracking</li>
+            <li className="flex items-center gap-2"><span className="text-indigo-600 font-bold">✓</span> Macro format & hook pattern shifts</li>
+            <li className="flex items-center gap-2"><span className="text-indigo-600 font-bold">✓</span> Market gaps & unserved angles</li>
           </ul>
         </div>
 
         {/* Pillar 3: THE SYNTHESIS */}
-        <div className="bg-gradient-to-br from-slate-900 to-indigo-950/40 border border-purple-500/30 rounded-xl p-5 space-y-3">
-          <div className="text-purple-400 text-xs font-bold uppercase tracking-wider">
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 border border-slate-200 rounded-xl p-5 space-y-3 shadow-xs">
+          <div className="text-purple-600 text-[10px] font-bold uppercase tracking-wider">
             Unified Ecosystem Value
           </div>
-          <h2 className="text-base font-extrabold text-white">ALCO INTELLIGENCE</h2>
-          <div className="text-xs font-semibold text-purple-300 bg-purple-950/40 p-2.5 rounded border border-purple-800/40">
-            "WHAT SHOULD I DO NEXT?"
+          <h2 className="text-base font-bold text-slate-900">Alco Intelligence</h2>
+          <div className="text-xs font-semibold text-purple-700 bg-purple-50 p-2.5 rounded border border-purple-100">
+            «What should I do next?»
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed pt-1">
+          <p className="text-xs text-slate-600 leading-relaxed pt-1">
             Combines internal performance constraints with external market movements to formulate high-conviction creative hypotheses and pricing defense.
           </p>
         </div>
       </div>
 
-      {/* Live Interactive Cross-Product Diagnosis Simulation */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-400" />
-              Cross-Product Diagnostic Synthesis ({workspaceName})
-            </h3>
-            <p className="text-xs text-slate-400">
-              Live simulation of how ALCO RADAR market observations contextualize ALCO ADS performance metrics
-            </p>
+      {/* JSON Contract Drawer */}
+      {showJsonSchema && (
+        <div className="bg-slate-900 text-slate-100 p-4 rounded-xl border border-slate-800 text-xs font-mono overflow-x-auto max-h-80 shadow-md">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-2 font-sans font-bold">
+            Standard JSON Exchange Contract:
           </div>
-
-          <button
-            onClick={() => setShowJsonSchema(!showJsonSchema)}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <Code2 className="w-4 h-4 text-indigo-400" />
-            <span>{showJsonSchema ? 'Hide Contract JSON' : 'Inspect Contract JSON'}</span>
-          </button>
+          <pre>{JSON.stringify(sampleContract, null, 2)}</pre>
         </div>
+      )}
 
-        {/* JSON Contract Drawer */}
-        {showJsonSchema && (
-          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs font-mono text-slate-300 overflow-x-auto max-h-72">
-            <pre>{JSON.stringify(sampleContract, null, 2)}</pre>
-          </div>
-        )}
-
-        {/* Visual Diagnostic Comparison */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left: First-Party Problem (from Alco Ads) */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-3">
-            <div className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>ALCO ADS (First-Party Observation)</span>
-            </div>
-            <div className="space-y-2 text-xs">
-              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <div className="text-slate-400 font-medium text-[11px]">Observed Symptom:</div>
-                <div className="text-white font-bold mt-0.5">3-Second Hook Retention dropped -32% across Main Ad Set</div>
-              </div>
-              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <div className="text-slate-400 font-medium text-[11px]">First-Party Setup:</div>
-                <div className="text-slate-300 mt-0.5">Static banner creatives running standard 15% discount for 45 days.</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Market Context (from Alco Radar) */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-3">
-            <div className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>ALCO RADAR (Market Signal Context)</span>
-            </div>
-            <div className="space-y-2 text-xs">
-              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <div className="text-slate-400 font-medium text-[11px]">Market Fact:</div>
-                <div className="text-white font-bold mt-0.5">65% of competitor volume shifted to Doctor-Verified Vertical UGC</div>
-              </div>
-              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <div className="text-slate-400 font-medium text-[11px]">Longevity Proof:</div>
-                <div className="text-slate-300 mt-0.5">Clinical authority creatives by Dermalux active for 58+ consecutive days.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Synthesis Action Result */}
-        <div className="bg-indigo-950/30 border border-indigo-500/30 rounded-xl p-5 space-y-3">
-          <div className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-            Recommended Ecosystem Action Hypothesis
-          </div>
-          <p className="text-sm font-semibold text-white">
-            "Your creative fatigue is not just internal; user attention has migrated to clinical authority video proof. Pivot 20% of testing budget immediately to vertical UGC testimonials addressing ingredient bio-fermentation."
+      {/* Cross-Product Synthesized Opportunities */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5 shadow-xs">
+        <div className="border-b border-slate-100 pb-3">
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-500" />
+            Cross-Product Diagnostic Synthesis ({workspaceName})
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Contextualizes internal performance fatigue against macro competitor shifts
           </p>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-indigo-200/80 pt-1">
-            <span>Priority: <strong className="text-white font-bold">IMMEDIATE</strong></span>
-            <span>•</span>
-            <span>Confidence: <strong className="text-emerald-400 font-bold">HIGH</strong></span>
-            <span>•</span>
-            <span>Traceable Evidence: <strong className="text-white">4 Competitor Ads</strong></span>
-          </div>
+        </div>
+
+        <div className="space-y-4">
+          {sampleContract.synthesizedOpportunities.map((opp) => (
+            <div
+              key={opp.id}
+              className="bg-slate-50 border border-slate-200 rounded-xl p-4.5 space-y-3"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-2.5">
+                <h4 className="text-sm font-bold text-slate-900">{opp.opportunityTitle}</h4>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider self-start sm:self-auto ${
+                  opp.confidence === 'HIGH' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {opp.confidence} CONFIDENCE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {/* First Party Context */}
+                <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                  <div className="text-rose-700 font-bold text-[10px] uppercase tracking-wider">
+                    First-Party Account Diagnosis (Alco Ads)
+                  </div>
+                  <p className="text-slate-700 leading-relaxed">{opp.firstPartyAdDiagnosis}</p>
+                </div>
+
+                {/* Radar Market Evidence */}
+                <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
+                  <div className="text-blue-700 font-bold text-[10px] uppercase tracking-wider">
+                    Market Radar Evidence (Competitor Benchmarking)
+                  </div>
+                  <p className="text-slate-700 leading-relaxed">{opp.radarEvidence}</p>
+                </div>
+              </div>
+
+              {/* Recommended Action */}
+              <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs">
+                <div className="font-bold text-blue-900 text-[11px] mb-0.5 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  Recommended Ecosystem Action
+                </div>
+                <p className="text-slate-700 leading-relaxed">{opp.recommendedAction}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

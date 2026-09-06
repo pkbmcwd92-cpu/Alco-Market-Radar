@@ -7,6 +7,7 @@ import {
   MarketSignal,
   MarketTrendMetric,
   AISignalSynthesisResponse,
+  MarketOpportunityScore,
 } from '../../types/radar';
 import {
   Activity,
@@ -25,7 +26,11 @@ import {
   Zap,
   Shield,
   Search,
+  Check,
+  Award,
+  Info,
 } from 'lucide-react';
+import { INITIAL_MARKET_OPPORTUNITIES } from '../../data/mockData';
 
 interface DashboardViewProps {
   workspace: MarketWorkspace;
@@ -297,8 +302,138 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </ul>
             </div>
           </div>
+
+          {/* Epistemic Confidence Assessment Breakdown (V1.1 Standard) */}
+          {aiSynthesis.confidenceAssessment && (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2 text-xs">
+              <div className="text-slate-700 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[10px]">
+                <Info className="w-3.5 h-3.5 text-blue-600" />
+                <span>Separated Epistemic Confidence Assessment</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white p-2.5 rounded border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Evidence</span>
+                  <span className="text-xs font-bold text-emerald-700">
+                    {aiSynthesis.confidenceAssessment.evidenceConfidence} CONFIDENCE
+                  </span>
+                </div>
+                <div className="bg-white p-2.5 rounded border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Interpretation</span>
+                  <span className="text-xs font-bold text-blue-700">
+                    {aiSynthesis.confidenceAssessment.interpretationConfidence} CONFIDENCE
+                  </span>
+                </div>
+                <div className="bg-white p-2.5 rounded border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold block uppercase">Hypothesis</span>
+                  <span className="text-xs font-bold text-purple-700">
+                    {aiSynthesis.confidenceAssessment.hypothesisConfidence} CONFIDENCE
+                  </span>
+                </div>
+              </div>
+              <p className="text-slate-600 text-[11px] pt-1 leading-relaxed">
+                <strong>Rationale:</strong> {aiSynthesis.confidenceAssessment.rationale}
+              </p>
+            </div>
+          )}
+
+          {/* Next Recommended Human Actions */}
+          {aiSynthesis.nextActions && aiSynthesis.nextActions.length > 0 && (
+            <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-lg space-y-2 text-xs">
+              <div className="text-blue-900 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[10px]">
+                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                <span>Recommended Verification Steps (Human Next Actions)</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                {aiSynthesis.nextActions.map((action, idx) => (
+                  <div key={idx} className="bg-white p-2.5 rounded border border-blue-100 flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">•</span>
+                    <span>{action}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      {/* 3b. Deterministic Market Opportunity Scorecard (Phase 8 & 12) */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500" />
+              Category Opportunity Scorecards
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Quantified, deterministic gap analysis based on competitor saturation and unserved angles
+            </p>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
+            DETERMINISTIC EVALUATION
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {INITIAL_MARKET_OPPORTUNITIES.map((opp) => (
+            <div
+              key={opp.id}
+              className="bg-slate-50 border border-slate-200/90 rounded-xl p-4 space-y-3 hover:border-slate-300 transition"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+                      SCORE {opp.score}/100
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                      {opp.evidenceStrength}% EVIDENCE STRENGTH
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900">{opp.title}</h3>
+                </div>
+
+                <div className="text-right shrink-0 bg-white px-2.5 py-1 rounded border border-slate-200 shadow-2xs">
+                  <div className="text-[9px] text-slate-400 uppercase font-bold">Adoption Gap</div>
+                  <div className="text-base font-bold text-blue-600 font-mono">{opp.adoptionGap}%</div>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed">{opp.description}</p>
+
+              <div className="grid grid-cols-3 gap-2 text-center text-xs py-1">
+                <div className="bg-white p-1.5 rounded border border-slate-200">
+                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Novelty</span>
+                  <span className="font-bold text-slate-800">{opp.novelty}%</span>
+                </div>
+                <div className="bg-white p-1.5 rounded border border-slate-200">
+                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Saturation</span>
+                  <span className="font-bold text-slate-800">{opp.saturation}%</span>
+                </div>
+                <div className="bg-white p-1.5 rounded border border-slate-200">
+                  <span className="text-[9px] text-slate-400 uppercase block font-medium">Confidence</span>
+                  <span className="font-bold text-emerald-700">{opp.confidence?.evidence || 'HIGH'}</span>
+                </div>
+              </div>
+
+              {opp.recommendedExploration && (
+                <div className="text-[11px] text-slate-600 bg-white p-2 rounded border border-slate-200/80">
+                  <strong className="text-slate-800">Recommended Test: </strong>
+                  {opp.recommendedExploration}
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                <span className="truncate max-w-[280px]">
+                  Uncontested angle: <strong className="text-slate-700">{opp.uncontestedAngle || 'N/A'}</strong>
+                </span>
+                <span className="font-mono text-[10px] text-blue-600 font-semibold cursor-pointer" onClick={() => onNavigateToTab('signals')}>
+                  Explore Signals →
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 4. Sleek Dual-Column: RADAR Critical Market Signals & Competitor Activity Radar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

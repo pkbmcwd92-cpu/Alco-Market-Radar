@@ -6,6 +6,16 @@
  */
 
 export type ConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type EvidenceConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type InterpretationConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type HypothesisConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface ConfidenceAssessment {
+  evidence: EvidenceConfidenceLevel;
+  interpretation: InterpretationConfidenceLevel;
+  hypothesis?: HypothesisConfidenceLevel;
+  rationale?: string;
+}
 
 export type FormatType = 
   | 'static image' 
@@ -126,6 +136,21 @@ export interface AdObservation {
   observedDays: number;
 }
 
+export interface ObservationSnapshot {
+  id: string;
+  workspaceId: string;
+  entityType: 'AD' | 'COMPETITOR' | 'CREATIVE' | 'LANDING_PAGE';
+  entityId: string;
+  observedAt: string;
+  status?: 'active' | 'inactive' | 'unknown';
+  format?: FormatType;
+  active?: boolean;
+  headline?: string;
+  primaryAngle?: MessagingAngle;
+  primaryHook?: HookType;
+  metadata?: Record<string, unknown>;
+}
+
 export type LongevityTier = 'new_detected' | 'testing' | 'established' | 'high_longevity';
 
 export interface CreativeIntelligence {
@@ -133,14 +158,22 @@ export interface CreativeIntelligence {
   adObservationId: string;
   creativeFamilyId?: string;
   format: FormatType;
-  hookType: HookType;
-  messagingAngle: MessagingAngle;
+  hookType: HookType; // preserved for backward compatibility (primary hook)
+  messagingAngle: MessagingAngle; // preserved for backward compatibility (primary angle)
   offerType: OfferType;
   cta: CtaType;
+  primaryHook: HookType;
+  secondaryHooks?: HookType[];
+  primaryAngle: MessagingAngle;
+  secondaryAngles?: MessagingAngle[];
   observedDurationDays: number;
   longevityTier: LongevityTier;
   strategicImportanceHypothesis: string;
-  confidence: ConfidenceLevel;
+  confidence: ConfidenceLevel; // overall confidence
+  confidenceAssessment?: ConfidenceAssessment;
+  hookConfidence?: ConfidenceLevel;
+  angleConfidence?: ConfidenceLevel;
+  offerConfidence?: ConfidenceLevel;
 }
 
 export interface CreativeFamily {
@@ -155,6 +188,7 @@ export interface CreativeFamily {
   commonOffer: OfferType;
   format: FormatType;
   confidence: ConfidenceLevel;
+  confidenceAssessment?: ConfidenceAssessment;
   averageLongevityDays: number;
   description: string;
 }
@@ -188,6 +222,16 @@ export interface EvidenceItem {
   supportingIds?: string[];
 }
 
+export interface EvidenceChain {
+  observation: string;
+  evidenceSummary: string;
+  pattern: string;
+  signal: string;
+  interpretation: string;
+  hypothesis: string;
+  strategicImplication: string;
+}
+
 export interface MarketSignal {
   id: string;
   workspaceId: string;
@@ -196,7 +240,8 @@ export interface MarketSignal {
   description: string;
   whyItMatters: string;
   severity: SignalSeverity;
-  confidence: ConfidenceLevel;
+  confidence: ConfidenceLevel; // backward-compat overall confidence
+  confidenceAssessment?: ConfidenceAssessment;
   detectedAt: string;
   evidence: EvidenceItem[];
   relatedCompetitors: string[]; // competitor IDs
@@ -208,7 +253,60 @@ export interface MarketSignal {
     inferred: string;
     hypothesis: string;
   };
+  observedFacts?: string[];
+  calculatedPatterns?: string[];
+  interpretation?: string;
+  hypothesis?: string;
+  strategicImplication?: string;
+  nextActions?: string[];
+  evidenceChain?: EvidenceChain;
   createdAt: string;
+}
+
+export interface CompetitorVelocity {
+  competitorId: string;
+  competitorName: string;
+  newCreativesCurrentPeriod: number;
+  newCreativesPreviousPeriod: number;
+  velocityChangePct: number;
+  disappearedCreatives: number;
+  activeInventoryCount: number;
+  netCreativeChange: number;
+  dominantFormat: FormatType;
+  dominantAngle: MessagingAngle;
+}
+
+export interface TemporalTrendReport {
+  workspaceId: string;
+  periodDays: number;
+  currentPeriodLabel: string;
+  previousPeriodLabel: string;
+  totalActiveCreatives: number;
+  newCreativesCount: number;
+  disappearedCreativesCount: number;
+  overallTurnoverRate: number;
+  formatShifts: MarketTrendMetric[];
+  hookShifts: MarketTrendMetric[];
+  angleShifts: MarketTrendMetric[];
+  offerShifts: MarketTrendMetric[];
+  competitorVelocities: CompetitorVelocity[];
+  calculatedAt: string;
+}
+
+export interface MarketOpportunityScore {
+  id: string;
+  workspaceId: string;
+  title: string;
+  description: string;
+  score: number; // 0-100 composite score
+  novelty: number; // 0-100
+  adoptionGap: number; // 0-100 (uncontested space)
+  evidenceStrength: number; // 0-100
+  saturation: number; // 0-100
+  confidence: ConfidenceAssessment;
+  uncontestedAngle?: string;
+  recommendedExploration?: string;
+  supportingEvidenceIds?: string[];
 }
 
 export interface LandingPageObservation {
@@ -284,6 +382,8 @@ export interface AISignalSynthesisResponse {
   hypotheses: string[];
   opportunities: string[];
   threats: string[];
-  confidence: ConfidenceLevel;
+  confidence: ConfidenceLevel | ConfidenceAssessment;
+  confidenceAssessment?: ConfidenceAssessment;
   evidenceIds: string[];
+  nextActions?: string[];
 }

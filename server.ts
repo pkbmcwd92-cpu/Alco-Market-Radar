@@ -88,7 +88,7 @@ Signals: ${JSON.stringify(signals || [], null, 2)}
 Produce a structured JSON response matching the schema.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -125,9 +125,24 @@ Produce a structured JSON response matching the schema.`;
               type: Type.STRING,
               description: "HIGH, MEDIUM, or LOW based strictly on evidence volume",
             },
+            confidenceAssessment: {
+              type: Type.OBJECT,
+              properties: {
+                evidence: { type: Type.STRING, description: "HIGH, MEDIUM, or LOW based on concrete data coverage" },
+                interpretation: { type: Type.STRING, description: "HIGH, MEDIUM, or LOW based on logical clarity" },
+                hypothesis: { type: Type.STRING, description: "Always LOW or MEDIUM to reflect speculation" },
+                rationale: { type: Type.STRING },
+              },
+              required: ["evidence", "interpretation", "hypothesis", "rationale"],
+            },
             evidenceIds: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
+            },
+            nextActions: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "Concrete actions for human marketers to evaluate or test",
             },
           },
           required: ["summary", "observed", "inferred", "hypotheses", "opportunities", "threats", "confidence"],
@@ -206,7 +221,7 @@ Offer Type: discount | bundle | free shipping | bonus | trial | guarantee | limi
 Return structured JSON.`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
